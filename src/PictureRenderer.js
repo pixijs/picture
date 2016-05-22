@@ -42,7 +42,7 @@ PictureRenderer.prototype.flush = function () {
     //noop
 };
 
-function nextPow2(w) {
+function nextPow2(v) {
     v += v === 0;
     --v;
     v |= v >>> 1;
