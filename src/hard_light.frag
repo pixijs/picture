@@ -15,6 +15,7 @@ void main(void)
     //reverse hardlight
     //yeah, premultiplied
     if (source.a == 0.0) {
+        gl_FragColor = vec4(0, 0, 0, 0);
         return;
     }
     vec3 Cb = source.rgb/source.a, Cs;
