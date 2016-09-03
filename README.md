@@ -10,7 +10,7 @@ Please, don't add children to sprite if you use those blendModes.
 
 Use PIXI.extras.PictureSprite instead of PIXI.Sprite, or call renderer.plugins.picture from your own Sprite implementation.
 
-[Usage example](https://pixijs.github.io/examples/index.html?s=cookbook&f=overlay.js&title=Overlay&plugins=pixi-picture&v=)
+[Usage example](https://pixijs.github.io/examples/index.html?s=picture&f=overlay.js&title=Overlay%20blendMode&plugins=pixi-picture&v=)
 
 ## How to build
 

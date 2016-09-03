@@ -105,8 +105,8 @@ function nextPow2(v) {
 PictureRenderer.prototype._getRenderTexture = function (minWidth, minHeight) {
     if (this._renderTexture.width < minWidth ||
         this._renderTexture.height < minHeight) {
-        minHeight = nextPow2(minWidth * resolution);
-        minHeight = nextPow2(minHeight * resolution);
+        minHeight = nextPow2(minWidth);
+        minHeight = nextPow2(minHeight);
         this._renderTexture.resize(minWidth, minHeight);
     }
     return this._renderTexture;
@@ -152,6 +152,7 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
     var spriteBounds = sprite.getBounds();
     var renderTarget = renderer._activeRenderTarget;
     var matrix = renderTarget.projectionMatrix;
+    var flipX = matrix.a < 0;
     var flipY = matrix.d < 0;
     var resolution = renderTarget.resolution;
     var screen = this._tempRect;
@@ -167,6 +168,9 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
     bounds.y = (spriteBounds.y + matrix.ty / matrix.d) * resolution + fbh / 2;
     bounds.width = spriteBounds.width * resolution;
     bounds.height = spriteBounds.height * resolution;
+    if (flipX) {
+        bounds.y = fbw - bounds.width - bounds.x;
+    }
     if (flipY) {
         bounds.y = fbh - bounds.height - bounds.y;
     }
@@ -200,7 +204,12 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
     if (shader.uniforms.mapMatrix) {
         var mapMatrix = this._tempMatrix;
         mapMatrix.a = bounds.width / rt.width / spriteBounds.width;
-        mapMatrix.tx = (bounds.x - x_1) / rt.width - spriteBounds.x * mapMatrix.a;
+        if (flipX) {
+            mapMatrix.a = -mapMatrix.a;
+            mapMatrix.ty = (bounds.x - x_1) / rt.width - (spriteBounds.x + spriteBounds.width) * mapMatrix.a;
+        } else {
+            mapMatrix.tx = (bounds.x - x_1) / rt.width - spriteBounds.x * mapMatrix.a;
+        }
         mapMatrix.d = bounds.height / rt.height / spriteBounds.height;
         if (flipY) {
             mapMatrix.d = -mapMatrix.d;
@@ -222,9 +231,11 @@ PictureRenderer.prototype._renderInner = function (sprite, shader) {
     var uvs = sprite.texture._uvs;
 
     //sprite already has calculated the vertices. lets transfer them to quad
+
     var vertices = quad.vertices;
+    var vd = sprite.computedGeometry ? sprite.computedGeometry.vertices : sprite.vertexData;
     for (var i = 0; i < 8; i++) {
-        quad.vertices[i] = sprite.vertexData[i];
+        quad.vertices[i] = vd[i];
     }
 
     //SpriteRenderer works differently, with uint32 UVS
@@ -328,12 +339,8 @@ module.exports = PictureSprite;
  */
 PictureSprite.prototype._renderWebGL = function (renderer)
 {
-    //copy of PIXI.Sprite v4 behaviour
-    if(this.transform.updated || this.textureDirty)
-    {
-        this.textureDirty = false;
-        // set the vertex data
-        this.calculateVertices();
+    if (this.updateGeometry) {
+        this.updateGeometry();
     }
 
     //use different plugin for rendering
