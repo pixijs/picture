@@ -1,4 +1,11 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*!
+ * pixi-picture - v1.0.1
+ * Compiled Thu Sep 08 2016 00:42:24 GMT+0300 (RTZ 2 (зима))
+ *
+ * pixi-picture is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.pixiPicture = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 
 /**
@@ -11,8 +18,8 @@ function OverlayShader(gl)
 {
     PIXI.Shader.call(this,
         gl,
-        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\n\nattribute vec2 aTextureCoord;\n\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\n\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\n\nvarying vec2 vMapCoord;\n\nvoid main(void)\n\n{\n\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n\n    vTextureCoord = aTextureCoord;\n\n}\n\n",
-        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\n\nvarying vec2 vMapCoord;\n\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\n\nuniform vec4 uTextureClamp;\n\nuniform vec4 uColor;\n\nvoid main(void)\n\n{\n\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n\n    vec4 source = texture2D(uSampler[0], textureCoord);\n\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    //reverse hardlight\r\n    //yeah, premultiplied\r\n    if (source.a == 0.0) {\n\n        gl_FragColor = vec4(0, 0, 0, 0);\n\n        return;\n\n    }\n\n    vec3 Cb = source.rgb/source.a, Cs;\n\n    if (target.a > 0.0) {\n\n        Cs = target.rgb / target.a;\n\n    }\n\n    vec3 multiply = Cb * Cs * 2.0;\n\n    vec3 Cs2 = Cs * 2.0 - 1.0;\n\n    vec3 screen = Cb + Cs2 - Cb * Cs2;\n\n    vec3 B;\n\n    if (Cb.r <= 0.5) {\n\n        B.r = multiply.r;\n\n    } else {\n\n        B.r = screen.r;\n\n    }\n\n    if (Cb.g <= 0.5) {\n\n        B.g = multiply.g;\n\n    } else {\n\n        B.g = screen.g;\n\n    }\n\n    if (Cb.b <= 0.5) {\n\n        B.b = multiply.b;\n\n    } else {\n\n        B.b = screen.b;\n\n    }\n\n    vec4 res;\n\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n\n    res.a = source.a + target.a * (1.0-source.a);\n\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n\n}\n\n"
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n    vTextureCoord = aTextureCoord;\n}\n",
+        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\nuniform vec4 uTextureClamp;\nuniform vec4 uColor;\n\nvoid main(void)\n{\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n    vec4 source = texture2D(uSampler[0], textureCoord);\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    //reverse hardlight\n    //yeah, premultiplied\n    if (source.a == 0.0) {\n        gl_FragColor = vec4(0, 0, 0, 0);\n        return;\n    }\n    vec3 Cb = source.rgb/source.a, Cs;\n    if (target.a > 0.0) {\n        Cs = target.rgb / target.a;\n    }\n    vec3 multiply = Cb * Cs * 2.0;\n    vec3 Cs2 = Cs * 2.0 - 1.0;\n    vec3 screen = Cb + Cs2 - Cb * Cs2;\n    vec3 B;\n    if (Cb.r <= 0.5) {\n        B.r = multiply.r;\n    } else {\n        B.r = screen.r;\n    }\n    if (Cb.g <= 0.5) {\n        B.g = multiply.g;\n    } else {\n        B.g = screen.g;\n    }\n    if (Cb.b <= 0.5) {\n        B.b = multiply.b;\n    } else {\n        B.b = screen.b;\n    }\n    vec4 res;\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n    res.a = source.a + target.a * (1.0-source.a);\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n}\n"
     );
     this.bind();
     this.uniforms.uSampler = [0, 1];
@@ -35,8 +42,8 @@ function OverlayShader(gl)
 {
     PIXI.Shader.call(this,
         gl,
-        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\n\nattribute vec2 aTextureCoord;\n\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\n\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\n\nvarying vec2 vMapCoord;\n\nvoid main(void)\n\n{\n\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n\n    vTextureCoord = aTextureCoord;\n\n}\n\n",
-        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\n\nvarying vec2 vMapCoord;\n\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\n\nuniform vec4 uTextureClamp;\n\nuniform vec4 uColor;\n\nvoid main(void)\n\n{\n\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n\n    vec4 source = texture2D(uSampler[0], textureCoord);\n\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    //reverse hardlight\r\n    if (source.a == 0.0) {\n\n        gl_FragColor = vec4(0, 0, 0, 0);\n\n        return;\n\n    }\n\n    //yeah, premultiplied\r\n    vec3 Cb = source.rgb/source.a, Cs;\n\n    if (target.a > 0.0) {\n\n        Cs = target.rgb / target.a;\n\n    }\n\n    vec3 multiply = Cb * Cs * 2.0;\n\n    vec3 Cb2 = Cb * 2.0 - 1.0;\n\n    vec3 screen = Cb2 + Cs - Cb2 * Cs;\n\n    vec3 B;\n\n    if (Cs.r <= 0.5) {\n\n        B.r = multiply.r;\n\n    } else {\n\n        B.r = screen.r;\n\n    }\n\n    if (Cs.g <= 0.5) {\n\n        B.g = multiply.g;\n\n    } else {\n\n        B.g = screen.g;\n\n    }\n\n    if (Cs.b <= 0.5) {\n\n        B.b = multiply.b;\n\n    } else {\n\n        B.b = screen.b;\n\n    }\n\n    vec4 res;\n\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n\n    res.a = source.a + target.a * (1.0-source.a);\n\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n\n}\n\n"
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n    vTextureCoord = aTextureCoord;\n}\n",
+        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\nuniform vec4 uTextureClamp;\nuniform vec4 uColor;\n\nvoid main(void)\n{\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n    vec4 source = texture2D(uSampler[0], textureCoord);\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    //reverse hardlight\n    if (source.a == 0.0) {\n        gl_FragColor = vec4(0, 0, 0, 0);\n        return;\n    }\n    //yeah, premultiplied\n    vec3 Cb = source.rgb/source.a, Cs;\n    if (target.a > 0.0) {\n        Cs = target.rgb / target.a;\n    }\n    vec3 multiply = Cb * Cs * 2.0;\n    vec3 Cb2 = Cb * 2.0 - 1.0;\n    vec3 screen = Cb2 + Cs - Cb2 * Cs;\n    vec3 B;\n    if (Cs.r <= 0.5) {\n        B.r = multiply.r;\n    } else {\n        B.r = screen.r;\n    }\n    if (Cs.g <= 0.5) {\n        B.g = multiply.g;\n    } else {\n        B.g = screen.g;\n    }\n    if (Cs.b <= 0.5) {\n        B.b = multiply.b;\n    } else {\n        B.b = screen.b;\n    }\n    vec4 res;\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n    res.a = source.a + target.a * (1.0-source.a);\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n}\n"
     );
     this.bind();
     this.uniforms.uSampler = [0, 1];
@@ -285,7 +292,7 @@ PIXI.WebGLRenderer.registerPlugin('picture', PictureRenderer);
 
 module.exports = PictureRenderer;
 
-},{"./PictureShader":4,"./mapFilterBlendModesToPixi":7}],4:[function(require,module,exports){
+},{"./PictureShader":4,"./mapFilterBlendModesToPixi":6}],4:[function(require,module,exports){
 
 
 /**
@@ -298,8 +305,8 @@ function PictureShader(gl)
 {
     PIXI.Shader.call(this,
         gl,
-        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\n\nattribute vec2 aTextureCoord;\n\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\n\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n\n{\n\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n    vTextureCoord = aTextureCoord;\n\n}\n\n",
-        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\n\nvarying vec4 vColor;\n\nuniform sampler2D uSampler;\n\nuniform vec4 uTextureClamp;\n\nuniform vec4 uColor;\n\nvoid main(void)\n\n{\n\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n\n    vec4 sample = texture2D(uSampler, textureCoord);\n\n    gl_FragColor = sample * uColor;\n\n}\n\n"
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\n\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    vTextureCoord = aTextureCoord;\n}\n",
+        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler;\nuniform vec4 uTextureClamp;\nuniform vec4 uColor;\n\nvoid main(void)\n{\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n    vec4 sample = texture2D(uSampler, textureCoord);\n    gl_FragColor = sample * uColor;\n}\n"
     );
     //do some stuff, like default values for shader
     //dont forget to bind it if you really are changing the uniforms
@@ -349,18 +356,6 @@ PictureSprite.prototype._renderWebGL = function (renderer)
 };
 
 },{}],6:[function(require,module,exports){
-var myPlugin = {
-    PictureSprite: require('./PictureSprite'),
-    PictureRenderer: require('./PictureRenderer')
-};
-
-//dump everything into extras
-
-Object.assign(PIXI.extras, myPlugin);
-
-module.exports = myPlugin;
-
-},{"./PictureRenderer":3,"./PictureSprite":5}],7:[function(require,module,exports){
 var CONST = PIXI,
     OverlayShader = require('./OverlayShader'),
     HardLightShader = require('./HardLightShader');
@@ -384,7 +379,20 @@ function mapFilterBlendModesToPixi(gl, array)
 
 module.exports = mapFilterBlendModesToPixi;
 
-},{"./HardLightShader":1,"./OverlayShader":2}]},{},[6])
+},{"./HardLightShader":1,"./OverlayShader":2}],7:[function(require,module,exports){
+var myPlugin = {
+    PictureSprite: require('./PictureSprite'),
+    PictureRenderer: require('./PictureRenderer')
+};
+
+//dump everything into extras
+
+Object.assign(PIXI.extras, myPlugin);
+
+module.exports = myPlugin;
+
+},{"./PictureRenderer":3,"./PictureSprite":5}]},{},[7])(7)
+});
 
 
 //# sourceMappingURL=pixi-picture.js.map
