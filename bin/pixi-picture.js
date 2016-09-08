@@ -1,6 +1,6 @@
 /*!
  * pixi-picture - v1.0.1
- * Compiled Thu Sep 08 2016 00:42:24 GMT+0300 (RTZ 2 (зима))
+ * Compiled Thu Sep 08 2016 11:54:21 GMT+0200 (CEST)
  *
  * pixi-picture is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -14,7 +14,7 @@
  * @memberof PIXI.tilemap
  * @param gl {PIXI.Shader} The WebGL shader manager this shader works for.
  */
-function OverlayShader(gl)
+function HardLightShader(gl)
 {
     PIXI.Shader.call(this,
         gl,
@@ -25,9 +25,9 @@ function OverlayShader(gl)
     this.uniforms.uSampler = [0, 1];
 }
 
-OverlayShader.prototype = Object.create(PIXI.Shader.prototype);
-OverlayShader.prototype.constructor = OverlayShader;
-module.exports = OverlayShader;
+HardLightShader.prototype = Object.create(PIXI.Shader.prototype);
+HardLightShader.prototype.constructor = HardLightShader;
+module.exports = HardLightShader;
 
 },{}],2:[function(require,module,exports){
 
@@ -292,7 +292,7 @@ PIXI.WebGLRenderer.registerPlugin('picture', PictureRenderer);
 
 module.exports = PictureRenderer;
 
-},{"./PictureShader":4,"./mapFilterBlendModesToPixi":6}],4:[function(require,module,exports){
+},{"./PictureShader":4,"./mapFilterBlendModesToPixi":7}],4:[function(require,module,exports){
 
 
 /**
@@ -356,9 +356,34 @@ PictureSprite.prototype._renderWebGL = function (renderer)
 };
 
 },{}],6:[function(require,module,exports){
+
+
+/**
+ * @class
+ * @extends PIXI.Shader
+ * @memberof PIXI.tilemap
+ * @param gl {PIXI.Shader} The WebGL shader manager this shader works for.
+ */
+function SoftLightShader(gl)
+{
+    PIXI.Shader.call(this,
+        gl,
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n    vTextureCoord = aTextureCoord;\n}\n",
+        "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\nuniform vec4 uTextureClamp;\nuniform vec4 uColor;\n\nvoid main(void)\n{\n    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);\n    vec4 source = texture2D(uSampler[0], textureCoord);\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    vec3 multiply = Cb * Cs * 2.0 + Cs * Cs * (1.0 - 2.0 * Cb);\n    vec3 screen = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);\n    vec3 B;\n\n    if (Cb.r <= 0.5) {\n        B.r = multiply.r;\n    } else {\n        B.r = screen.r;\n    }\n    if (Cb.g <= 0.5) {\n        B.g = multiply.g;\n    } else {\n        B.g = screen.g;\n    }\n    if (Cb.b <= 0.5) {\n        B.b = multiply.b;\n    } else {\n        B.b = screen.b;\n    }\n\n    vec4 res;\n\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n    res.a = source.a + target.a * (1.0-source.a);\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n}\n"
+    );
+    this.bind();
+    this.uniforms.uSampler = [0, 1];
+}
+
+SoftLightShader.prototype = Object.create(PIXI.Shader.prototype);
+SoftLightShader.prototype.constructor = SoftLightShader;
+module.exports = SoftLightShader;
+
+},{}],7:[function(require,module,exports){
 var CONST = PIXI,
     OverlayShader = require('./OverlayShader'),
     HardLightShader = require('./HardLightShader');
+    SoftLightShader = require('./SoftLightShader');
 
 /**
  * Maps gl blend combinations to WebGL
@@ -373,13 +398,14 @@ function mapFilterBlendModesToPixi(gl, array)
     //add a boolean for that!
     array[CONST.BLEND_MODES.OVERLAY] = new OverlayShader(gl);
     array[CONST.BLEND_MODES.HARD_LIGHT] = new HardLightShader(gl);
+    array[CONST.BLEND_MODES.SOFT_LIGHT] = new SoftLightShader(gl);
 
     return array;
 }
 
 module.exports = mapFilterBlendModesToPixi;
 
-},{"./HardLightShader":1,"./OverlayShader":2}],7:[function(require,module,exports){
+},{"./HardLightShader":1,"./OverlayShader":2,"./SoftLightShader":6}],8:[function(require,module,exports){
 var myPlugin = {
     PictureSprite: require('./PictureSprite'),
     PictureRenderer: require('./PictureRenderer')
@@ -391,7 +417,7 @@ Object.assign(PIXI.extras, myPlugin);
 
 module.exports = myPlugin;
 
-},{"./PictureRenderer":3,"./PictureSprite":5}]},{},[7])(7)
+},{"./PictureRenderer":3,"./PictureSprite":5}]},{},[8])(8)
 });
 
 

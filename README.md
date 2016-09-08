@@ -16,5 +16,5 @@ Use PIXI.extras.PictureSprite instead of PIXI.Sprite, or call renderer.plugins.p
 
 ```bash
 npm install
-gulp
+npm run build
 ```
