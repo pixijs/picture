@@ -1,6 +1,6 @@
 {
   "name": "pixi-picture",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pixi.js heavy sprite renderer. Reduces border artifacts, allows to use advanced blend modes.",
   "author": "Ivan Popelyshev",
   "contributors": [
@@ -39,6 +39,11 @@
   "devDependencies": {
     "browserify-versionify": "^1.0.6",
     "del": "^2.2.0",
+    "gulp-cached": "^1.1.0",
+    "gulp-jshint": "^2.0.1",
+    "gulp-mirror": "^1.0.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-rename": "^1.2.2",
     "jaguarjs-jsdoc": "^1.0.1",
     "jsdoc": "^3.4.0",
     "jshint": "^2.9.2",
@@ -48,7 +53,9 @@
     "mkdirp": "^0.5.1",
     "parallelshell": "^2.0.0",
     "pixify": "^1.4.0",
+    "require-dir": "^0.3.0",
     "rimraf": "^2.5.3",
+    "run-sequence": "^1.2.2",
     "watch": "^0.19.1"
   },
   "browserify": {
