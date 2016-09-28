@@ -1,6 +1,6 @@
 /*!
  * pixi-picture - v1.0.1
- * Compiled Wed Sep 28 2016 22:18:09 GMT+0300 (RTZ 2 (зима))
+ * Compiled Wed Sep 28 2016 22:21:41 GMT+0300 (RTZ 2 (зима))
  *
  * pixi-picture is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
