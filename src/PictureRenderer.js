@@ -208,10 +208,10 @@ PictureRenderer.prototype._renderInner = function (sprite, shader) {
     var clamp = this._tempClamp;
     //clamping 0.5 pixel from each side to reduce border artifact
     //this is our plugin main purpose
-    clamp[0] = frame.x / base.width + 0.5 / base.realWidth;
-    clamp[1] = frame.y / base.height + 0.5 / base.realWidth;
-    clamp[2] = (frame.x + frame.width) / base.width - 0.5 / base.realWidth;
-    clamp[3] = (frame.y + frame.height) / base.height - 0.5 / base.realWidth;
+    clamp[0] = frame.x / base.width;
+    clamp[1] = frame.y / base.height;
+    clamp[2] = (frame.x + frame.width) / base.width - 1.0 / base.realWidth;
+    clamp[3] = (frame.y + frame.height) / base.height - 1.0 / base.realWidth;
     //take a notice that size in pixels is realWidth,realHeight
     //width and height are divided by resolution
     shader.uniforms.uTextureClamp = clamp;
