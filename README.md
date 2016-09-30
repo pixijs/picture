@@ -10,7 +10,7 @@ Please, don't add children to sprite if you use those blendModes.
 
 Use PIXI.extras.PictureSprite instead of PIXI.Sprite, or call renderer.plugins.picture from your own Sprite implementation.
 
-[Usage example](http://pixijs.github.io/examples/#/display/zorder.js)
+[Usage example](http://pixijs.github.io/examples/#/picture/overlay.js)
 
 ## How to build
 
