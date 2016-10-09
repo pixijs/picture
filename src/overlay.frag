@@ -3,12 +3,12 @@ varying vec2 vMapCoord;
 varying vec4 vColor;
 
 uniform sampler2D uSampler[2];
-uniform vec4 uTextureClamp;
 uniform vec4 uColor;
+%SPRITE_UNIFORMS%
 
 void main(void)
 {
-    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);
+    %SPRITE_CODE%
     vec4 source = texture2D(uSampler[0], textureCoord);
     vec4 target = texture2D(uSampler[1], vMapCoord);
 

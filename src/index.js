@@ -1,5 +1,6 @@
 var myPlugin = {
     PictureSprite: require('./PictureSprite'),
+    PictureTilingSprite: require('./PictureTilingSprite'),
     PictureRenderer: require('./PictureRenderer')
 };
 

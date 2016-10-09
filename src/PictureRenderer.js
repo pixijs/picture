@@ -1,4 +1,4 @@
-var PictureShader = require('./PictureShader'),
+var NormalShader = require('./NormalShader'),
     mapFilterBlendModesToPixi = require('./mapFilterBlendModesToPixi'),
     glCore = PIXI.glCore;
 
@@ -21,9 +21,9 @@ PictureRenderer.prototype.constructor = PictureRenderer;
 PictureRenderer.prototype.onContextChange = function () {
     var gl = this.renderer.gl;
     this.quad = new PIXI.Quad(gl);
-    this.normalShader = new PictureShader(gl);
     this.drawModes = mapFilterBlendModesToPixi(gl);
-    this.quad.initVao(this.normalShader);
+    this.normalShader = [new NormalShader(gl, 0), new NormalShader(gl, 1), new NormalShader(gl, 2)];
+    this.quad.initVao(this.normalShader[0]);
     this._tempClamp = new Float32Array(4);
     this._tempColor = new Float32Array(4);
     this._tempRect = new PIXI.Rectangle();
@@ -82,11 +82,17 @@ PictureRenderer.prototype.render = function (sprite) {
     if (!sprite.texture.valid) {
         return;
     }
+    var tilingMode = 0;
+    if (sprite.tileTransform) {
+        //for TilingSprite
+        tilingMode = this.renderer.plugins.tilingSprite.isSimpleSprite(sprite) ? 1 : 2;
+    }
+
     var blendShader = this.drawModes[sprite.blendMode];
     if (blendShader) {
-        this._renderBlend(sprite, blendShader);
+        this._renderBlend(sprite, blendShader[tilingMode]);
     } else {
-        this._renderNormal(sprite, this.normalShader);
+        this._renderNormal(sprite, this.normalShader[tilingMode]);
     }
 };
 
@@ -175,8 +181,16 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
     this._renderInner(sprite, shader);
 };
 
-
 PictureRenderer.prototype._renderInner = function (sprite, shader) {
+    var renderer = this.renderer;
+    if (shader.tilingMode > 0) {
+        renderer.plugins.tilingSprite.renderWithShader(sprite, shader.tilingMode === 1, shader);
+    } else {
+        this._renderSprite(sprite, shader);
+    }
+};
+
+PictureRenderer.prototype._renderSprite = function(sprite, shader) {
     var renderer = this.renderer;
     var quad = this.quad;
     var uvs = sprite.texture._uvs;
@@ -208,10 +222,11 @@ PictureRenderer.prototype._renderInner = function (sprite, shader) {
     var clamp = this._tempClamp;
     //clamping 0.5 pixel from each side to reduce border artifact
     //this is our plugin main purpose
-    clamp[0] = frame.x / base.width;
-    clamp[1] = frame.y / base.height;
-    clamp[2] = (frame.x + frame.width) / base.width - 1.0 / base.realWidth;
-    clamp[3] = (frame.y + frame.height) / base.height - 1.0 / base.realWidth;
+    var eps = 0.5 / base.resolution;
+    clamp[0] = (frame.x + eps) / base.width;
+    clamp[1] = (frame.y + eps) / base.height;
+    clamp[2] = (frame.x + frame.width - eps) / base.width;
+    clamp[3] = (frame.y + frame.height - eps) / base.height;
     //take a notice that size in pixels is realWidth,realHeight
     //width and height are divided by resolution
     shader.uniforms.uTextureClamp = clamp;

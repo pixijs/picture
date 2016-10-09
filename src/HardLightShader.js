@@ -1,22 +1,25 @@
 var glslify  = require('glslify');
+var PictureShader = require('./PictureShader');
 
 /**
  * @class
  * @extends PIXI.Shader
- * @memberof PIXI.tilemap
+ * @memberof PIXI.extras
  * @param gl {PIXI.Shader} The WebGL shader manager this shader works for.
+ * @param tilingMode {number} 0 for default, 1 for simple tiling, 2 for tiling
  */
-function OverlayShader(gl)
+function HardLightShader(gl, tilingMode)
 {
-    PIXI.Shader.call(this,
+    PictureShader.call(this,
         gl,
         glslify('./blend.vert'),
-        glslify('./hard_light.frag')
+        glslify('./hard_light.frag'),
+        tilingMode
     );
     this.bind();
     this.uniforms.uSampler = [0, 1];
 }
 
-OverlayShader.prototype = Object.create(PIXI.Shader.prototype);
-OverlayShader.prototype.constructor = OverlayShader;
-module.exports = OverlayShader;
+HardLightShader.prototype = Object.create(PictureShader.prototype);
+HardLightShader.prototype.constructor = HardLightShader;
+module.exports = HardLightShader;

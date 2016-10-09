@@ -3,21 +3,21 @@ varying vec2 vMapCoord;
 varying vec4 vColor;
 
 uniform sampler2D uSampler[2];
-uniform vec4 uTextureClamp;
 uniform vec4 uColor;
+%SPRITE_UNIFORMS%
 
 void main(void)
 {
-    vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);
+    %SPRITE_CODE%
     vec4 source = texture2D(uSampler[0], textureCoord);
     vec4 target = texture2D(uSampler[1], vMapCoord);
 
     //reverse hardlight
-    //yeah, premultiplied
     if (source.a == 0.0) {
         gl_FragColor = vec4(0, 0, 0, 0);
         return;
     }
+    //yeah, premultiplied
     vec3 Cb = source.rgb/source.a, Cs;
     if (target.a > 0.0) {
         Cs = target.rgb / target.a;

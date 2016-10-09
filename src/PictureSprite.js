@@ -3,7 +3,7 @@
  *
  * @class
  * @extends PIXI.Sprite
- * @memberof PIXI.tilemap
+ * @memberof PIXI.extras
  * @param texture {PIXI.Texture} the texture for this sprite
  */
 function PictureSprite(texture)
@@ -25,6 +25,8 @@ PictureSprite.prototype._renderWebGL = function (renderer)
 {
     if (this.updateGeometry) {
         this.updateGeometry();
+    } else {
+        this.calculateVertices();
     }
 
     //use different plugin for rendering
