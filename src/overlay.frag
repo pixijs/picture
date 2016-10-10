@@ -9,7 +9,7 @@ uniform vec4 uColor;
 void main(void)
 {
     %SPRITE_CODE%
-    vec4 source = texture2D(uSampler[0], textureCoord);
+    vec4 source = texture2D(uSampler[0], textureCoord) * uColor;
     vec4 target = texture2D(uSampler[1], vMapCoord);
 
     //reverse hardlight
