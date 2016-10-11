@@ -1,6 +1,6 @@
 /*!
- * pixi-picture - v1.0.2
- * Compiled Mon Oct 10 2016 03:32:13 GMT+0300 (RTZ 2 (зима))
+ * pixi-picture - v1.0.3
+ * Compiled Tue Oct 11 2016 03:21:24 GMT+0300 (RTZ 2 (зима))
  *
  * pixi-picture is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -93,7 +93,8 @@ module.exports = OverlayShader;
 },{"./PictureShader":5}],4:[function(require,module,exports){
 var NormalShader = require('./NormalShader'),
     mapFilterBlendModesToPixi = require('./mapFilterBlendModesToPixi'),
-    glCore = PIXI.glCore;
+    glCore = PIXI.glCore,
+    WRAP_MODES = PIXI.WRAP_MODES;
 
 /**
  * Renderer that clamps the texture so neighbour frames wont bleed on it
@@ -178,7 +179,7 @@ PictureRenderer.prototype.render = function (sprite) {
     var tilingMode = 0;
     if (sprite.tileTransform) {
         //for TilingSprite
-        tilingMode = this.renderer.plugins.tilingSprite.isSimpleSprite(sprite) ? 1 : 2;
+        tilingMode = this._isSimpleSprite(sprite) ? 1 : 2;
     }
 
     var blendShader = this.drawModes[sprite.blendMode];
@@ -277,7 +278,7 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
 PictureRenderer.prototype._renderInner = function (sprite, shader) {
     var renderer = this.renderer;
     if (shader.tilingMode > 0) {
-        renderer.plugins.tilingSprite.renderWithShader(sprite, shader.tilingMode === 1, shader);
+        this._renderWithShader(sprite, shader.tilingMode === 1, shader);
     } else {
         this._renderSprite(sprite, shader);
     }
@@ -337,6 +338,118 @@ PictureRenderer.prototype._renderSprite = function(sprite, shader) {
 
     //bind texture to unit 0, our default sampler unit
     renderer.bindTexture(base, 0);
+    quad.draw();
+};
+
+/**
+ * this is a part of PIXI.extras.TilingSprite. It will be refactored later
+ * @param ts
+ * @returns {boolean}
+ * @private
+ */
+PictureRenderer.prototype._isSimpleSprite = function(ts) {
+    var renderer = this.renderer;
+    var tex = ts._texture;
+    var baseTex = tex.baseTexture;
+    var isSimple = baseTex.isPowerOfTwo && tex.frame.width === baseTex.width && tex.frame.height === baseTex.height;
+
+    // auto, force repeat wrapMode for big tiling textures
+    if (isSimple)
+    {
+        if (!baseTex._glTextures[renderer.CONTEXT_UID])
+        {
+            if (baseTex.wrapMode === WRAP_MODES.CLAMP)
+            {
+                baseTex.wrapMode = WRAP_MODES.REPEAT;
+            }
+        }
+        else
+        {
+            isSimple = baseTex.wrapMode !== WRAP_MODES.CLAMP;
+        }
+    }
+
+    return isSimple;
+};
+
+/**
+ * this is a part of PIXI.extras.TilingSprite. It will be refactored later
+ * @param ts
+ * @returns {boolean}
+ * @private
+ */
+PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
+{
+    var quad = this.quad;
+    var vertices = quad.vertices;
+
+    vertices[0] = vertices[6] = (ts._width) * -ts.anchor.x;
+    vertices[1] = vertices[3] = ts._height * -ts.anchor.y;
+
+    vertices[2] = vertices[4] = (ts._width) * (1.0 - ts.anchor.x);
+    vertices[5] = vertices[7] = ts._height * (1.0 - ts.anchor.y);
+
+    vertices = quad.uvs;
+
+    vertices[0] = vertices[6] = -ts.anchor.x;
+    vertices[1] = vertices[3] = -ts.anchor.y;
+
+    vertices[2] = vertices[4] = 1.0 - ts.anchor.x;
+    vertices[5] = vertices[7] = 1.0 - ts.anchor.y;
+
+    quad.upload();
+
+    var renderer = this.renderer;
+    var tex = ts._texture;
+    var lt = ts.tileTransform.localTransform;
+    var uv = ts.uvTransform;
+
+    var w = tex.width;
+    var h = tex.height;
+    var W = ts._width;
+    var H = ts._height;
+
+    var tempMat = this._tempMatrix;
+
+    tempMat.set(lt.a * w / W,
+        lt.b * w / H,
+        lt.c * h / W,
+        lt.d * h / H,
+        lt.tx / W,
+        lt.ty / H);
+
+    // that part is the same as above:
+    // tempMat.identity();
+    // tempMat.scale(tex.width, tex.height);
+    // tempMat.prepend(lt);
+    // tempMat.scale(1.0 / ts._width, 1.0 / ts._height);
+
+    tempMat.invert();
+    if (isSimple)
+    {
+        tempMat.append(uv.mapCoord);
+    }
+    else
+    {
+        shader.uniforms.uMapCoord = uv.mapCoord.toArray(true);
+        shader.uniforms.uClampFrame = uv.uClampFrame;
+        shader.uniforms.uClampOffset = uv.uClampOffset;
+    }
+    shader.uniforms.uTransform = tempMat.toArray(true);
+
+    var color = this._tempColor;
+    var alpha = ts.worldAlpha;
+
+    PIXI.utils.hex2rgb(ts.tint, color);
+    color[0] *= alpha;
+    color[1] *= alpha;
+    color[2] *= alpha;
+    color[3] = alpha;
+    shader.uniforms.uColor = color;
+    shader.uniforms.translationMatrix = ts.transform.worldTransform.toArray(true);
+
+    renderer.bindTexture(tex);
+
     quad.draw();
 };
 
