@@ -31,6 +31,7 @@ PictureRenderer.prototype.onContextChange = function () {
     this._tempRect2 = new PIXI.Rectangle();
     this._tempRect3 = new PIXI.Rectangle();
     this._tempMatrix = new PIXI.Matrix();
+    this._tempMatrix2 = new PIXI.Matrix();
     this._bigBuf = new Uint8Array(1 << 20);
     this._renderTexture = new PIXI.BaseRenderTexture(1024, 1024);
 };
@@ -164,7 +165,7 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
         mapMatrix.a = bounds.width / rt.width / spriteBounds.width;
         if (flipX) {
             mapMatrix.a = -mapMatrix.a;
-            mapMatrix.ty = (bounds.x - x_1) / rt.width - (spriteBounds.x + spriteBounds.width) * mapMatrix.a;
+            mapMatrix.tx = (bounds.x - x_1) / rt.width - (spriteBounds.x + spriteBounds.width) * mapMatrix.a;
         } else {
             mapMatrix.tx = (bounds.x - x_1) / rt.width - spriteBounds.x * mapMatrix.a;
         }
@@ -176,7 +177,7 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
             mapMatrix.ty = (bounds.y - y_1) / rt.height - spriteBounds.y * mapMatrix.d;
         }
 
-        shader.uniforms.mapMatrix = mapMatrix.toArray(true, shader.uniforms.mapMatrix);
+        shader.uniforms.mapMatrix = mapMatrix.toArray(true);
     }
 
     this._renderInner(sprite, shader);
@@ -290,11 +291,32 @@ PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
     var quad = this.quad;
     var vertices = quad.vertices;
 
-    vertices[0] = vertices[6] = (ts._width) * -ts.anchor.x;
-    vertices[1] = vertices[3] = ts._height * -ts.anchor.y;
+    var w0 = ts._width * (1 - ts._anchor._x);
+    var w1 = ts._width * -ts._anchor._x;
 
-    vertices[2] = vertices[4] = (ts._width) * (1.0 - ts.anchor.x);
-    vertices[5] = vertices[7] = ts._height * (1.0 - ts.anchor.y);
+    var h0 = ts._height * (1 - ts._anchor._y);
+    var h1 = ts._height * -ts._anchor._y;
+
+    var wt = ts.transform.worldTransform;
+
+    var a = wt.a;
+    var b = wt.b;
+    var c = wt.c;
+    var d = wt.d;
+    var tx = wt.tx;
+    var ty = wt.ty;
+
+    vertices[0] = (a * w1) + (c * h1) + tx;
+    vertices[1] = (d * h1) + (b * w1) + ty;
+
+    vertices[2] = (a * w0) + (c * h1) + tx;
+    vertices[3] = (d * h1) + (b * w0) + ty;
+
+    vertices[4] = (a * w0) + (c * h0) + tx;
+    vertices[5] = (d * h0) + (b * w0) + ty;
+
+    vertices[6] = (a * w1) + (c * h0) + tx;
+    vertices[7] = (d * h0) + (b * w1) + ty;
 
     vertices = quad.uvs;
 
@@ -316,7 +338,7 @@ PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
     var W = ts._width;
     var H = ts._height;
 
-    var tempMat = this._tempMatrix;
+    var tempMat = this._tempMatrix2;
 
     tempMat.set(lt.a * w / W,
         lt.b * w / H,
@@ -353,7 +375,6 @@ PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
     color[2] *= alpha;
     color[3] = alpha;
     shader.uniforms.uColor = color;
-    shader.uniforms.translationMatrix = ts.transform.worldTransform.toArray(true);
 
     renderer.bindTexture(tex);
 

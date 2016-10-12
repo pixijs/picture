@@ -1,6 +1,6 @@
 /*!
  * pixi-picture - v1.0.3
- * Compiled Tue Oct 11 2016 03:21:24 GMT+0300 (RTZ 2 (зима))
+ * Compiled Wed Oct 12 2016 22:33:16 GMT+0300 (RTZ 2 (зима))
  *
  * pixi-picture is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -20,7 +20,7 @@ function HardLightShader(gl, tilingMode)
 {
     PictureShader.call(this,
         gl,
-        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n}\n",
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    %SPRITE_CODE%\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n}\n",
         "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\nuniform vec4 uColor;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n    vec4 source = texture2D(uSampler[0], textureCoord) * uColor;\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    //reverse hardlight\n    if (source.a == 0.0) {\n        gl_FragColor = vec4(0, 0, 0, 0);\n        return;\n    }\n    //yeah, premultiplied\n    vec3 Cb = source.rgb/source.a, Cs;\n    if (target.a > 0.0) {\n        Cs = target.rgb / target.a;\n    }\n    vec3 multiply = Cb * Cs * 2.0;\n    vec3 Cs2 = Cs * 2.0 - 1.0;\n    vec3 screen = Cb + Cs2 - Cb * Cs2;\n    vec3 B;\n    if (Cb.r <= 0.5) {\n        B.r = multiply.r;\n    } else {\n        B.r = screen.r;\n    }\n    if (Cb.g <= 0.5) {\n        B.g = multiply.g;\n    } else {\n        B.g = screen.g;\n    }\n    if (Cb.b <= 0.5) {\n        B.b = multiply.b;\n    } else {\n        B.b = screen.b;\n    }\n    vec4 res;\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n    res.a = source.a + target.a * (1.0-source.a);\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n}\n",
         tilingMode
     );
@@ -47,7 +47,7 @@ function NormalShader(gl, tilingMode)
 {
     PictureShader.call(this,
         gl,
-        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\n\nvarying vec2 vTextureCoord;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n}\n",
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\n\nvarying vec2 vTextureCoord;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    %SPRITE_CODE%\n}\n",
         "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler;\nuniform vec4 uColor;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n\n    vec4 sample = texture2D(uSampler, textureCoord);\n    gl_FragColor = sample * uColor;\n}\n",
         tilingMode
     );
@@ -78,7 +78,7 @@ function OverlayShader(gl, tilingMode)
 {
     PictureShader.call(this,
         gl,
-        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n}\n",
+        "#define GLSLIFY 1\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aColor;\n\nuniform mat3 projectionMatrix;\nuniform mat3 mapMatrix;\n\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n    %SPRITE_CODE%\n    vMapCoord = (mapMatrix * vec3(aVertexPosition, 1.0)).xy;\n}\n",
         "#define GLSLIFY 1\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\nvarying vec4 vColor;\n\nuniform sampler2D uSampler[2];\nuniform vec4 uColor;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n    vec4 source = texture2D(uSampler[0], textureCoord) * uColor;\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    //reverse hardlight\n    if (source.a == 0.0) {\n        gl_FragColor = vec4(0, 0, 0, 0);\n        return;\n    }\n    //yeah, premultiplied\n    vec3 Cb = source.rgb/source.a, Cs;\n    if (target.a > 0.0) {\n        Cs = target.rgb / target.a;\n    }\n    vec3 multiply = Cb * Cs * 2.0;\n    vec3 Cb2 = Cb * 2.0 - 1.0;\n    vec3 screen = Cb2 + Cs - Cb2 * Cs;\n    vec3 B;\n    if (Cs.r <= 0.5) {\n        B.r = multiply.r;\n    } else {\n        B.r = screen.r;\n    }\n    if (Cs.g <= 0.5) {\n        B.g = multiply.g;\n    } else {\n        B.g = screen.g;\n    }\n    if (Cs.b <= 0.5) {\n        B.b = multiply.b;\n    } else {\n        B.b = screen.b;\n    }\n    vec4 res;\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n    res.a = source.a + target.a * (1.0-source.a);\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n}\n",
         tilingMode
     );
@@ -124,6 +124,7 @@ PictureRenderer.prototype.onContextChange = function () {
     this._tempRect2 = new PIXI.Rectangle();
     this._tempRect3 = new PIXI.Rectangle();
     this._tempMatrix = new PIXI.Matrix();
+    this._tempMatrix2 = new PIXI.Matrix();
     this._bigBuf = new Uint8Array(1 << 20);
     this._renderTexture = new PIXI.BaseRenderTexture(1024, 1024);
 };
@@ -257,7 +258,7 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
         mapMatrix.a = bounds.width / rt.width / spriteBounds.width;
         if (flipX) {
             mapMatrix.a = -mapMatrix.a;
-            mapMatrix.ty = (bounds.x - x_1) / rt.width - (spriteBounds.x + spriteBounds.width) * mapMatrix.a;
+            mapMatrix.tx = (bounds.x - x_1) / rt.width - (spriteBounds.x + spriteBounds.width) * mapMatrix.a;
         } else {
             mapMatrix.tx = (bounds.x - x_1) / rt.width - spriteBounds.x * mapMatrix.a;
         }
@@ -269,7 +270,7 @@ PictureRenderer.prototype._renderBlend = function (sprite, shader) {
             mapMatrix.ty = (bounds.y - y_1) / rt.height - spriteBounds.y * mapMatrix.d;
         }
 
-        shader.uniforms.mapMatrix = mapMatrix.toArray(true, shader.uniforms.mapMatrix);
+        shader.uniforms.mapMatrix = mapMatrix.toArray(true);
     }
 
     this._renderInner(sprite, shader);
@@ -383,11 +384,32 @@ PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
     var quad = this.quad;
     var vertices = quad.vertices;
 
-    vertices[0] = vertices[6] = (ts._width) * -ts.anchor.x;
-    vertices[1] = vertices[3] = ts._height * -ts.anchor.y;
+    var w0 = ts._width * (1 - ts._anchor._x);
+    var w1 = ts._width * -ts._anchor._x;
 
-    vertices[2] = vertices[4] = (ts._width) * (1.0 - ts.anchor.x);
-    vertices[5] = vertices[7] = ts._height * (1.0 - ts.anchor.y);
+    var h0 = ts._height * (1 - ts._anchor._y);
+    var h1 = ts._height * -ts._anchor._y;
+
+    var wt = ts.transform.worldTransform;
+
+    var a = wt.a;
+    var b = wt.b;
+    var c = wt.c;
+    var d = wt.d;
+    var tx = wt.tx;
+    var ty = wt.ty;
+
+    vertices[0] = (a * w1) + (c * h1) + tx;
+    vertices[1] = (d * h1) + (b * w1) + ty;
+
+    vertices[2] = (a * w0) + (c * h1) + tx;
+    vertices[3] = (d * h1) + (b * w0) + ty;
+
+    vertices[4] = (a * w0) + (c * h0) + tx;
+    vertices[5] = (d * h0) + (b * w0) + ty;
+
+    vertices[6] = (a * w1) + (c * h0) + tx;
+    vertices[7] = (d * h0) + (b * w1) + ty;
 
     vertices = quad.uvs;
 
@@ -409,7 +431,7 @@ PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
     var W = ts._width;
     var H = ts._height;
 
-    var tempMat = this._tempMatrix;
+    var tempMat = this._tempMatrix2;
 
     tempMat.set(lt.a * w / W,
         lt.b * w / H,
@@ -446,7 +468,6 @@ PictureRenderer.prototype._renderWithShader = function(ts, isSimple, shader)
     color[2] *= alpha;
     color[3] = alpha;
     shader.uniforms.uColor = color;
-    shader.uniforms.translationMatrix = ts.transform.worldTransform.toArray(true);
 
     renderer.bindTexture(tex);
 
@@ -485,23 +506,21 @@ var shaderLib = [
     {
         //DOES NOT HAVE translationMatrix
         vertUniforms: "",
-        vertCode: "gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);" + "\nvTextureCoord = aTextureCoord;",
+        vertCode: "vTextureCoord = aTextureCoord;",
         fragUniforms: "uniform vec4 uTextureClamp;",
         fragCode: "vec2 textureCoord = clamp(vTextureCoord, uTextureClamp.xy, uTextureClamp.zw);"
     },
     {
         //DOES HAVE translationMatrix
-        vertUniforms: "uniform mat3 translationMatrix;" + "\nuniform mat3 uTransform;",
-        vertCode: "gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);" +
-        "\nvTextureCoord = (uTransform * vec3(aTextureCoord, 1.0)).xy;",
+        vertUniforms: "uniform mat3 uTransform;",
+        vertCode: "vTextureCoord = (uTransform * vec3(aTextureCoord, 1.0)).xy;",
         fragUniforms: "",
         fragCode: "vec2 textureCoord = vTextureCoord;"
     },
     {
         //DOES HAVE translationMatrix
-        vertUniforms: "uniform mat3 translationMatrix;" + "\nuniform mat3 uTransform;",
-        vertCode: "gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);" +
-        "\nvTextureCoord = (uTransform * vec3(aTextureCoord, 1.0)).xy;",
+        vertUniforms: "uniform mat3 uTransform;",
+        vertCode: "vTextureCoord = (uTransform * vec3(aTextureCoord, 1.0)).xy;",
         fragUniforms: "uniform mat3 uMapCoord;\nuniform vec4 uClampFrame;\nuniform vec2 uClampOffset;",
         fragCode: "vec2 textureCoord = mod(vTextureCoord - uClampOffset, vec2(1.0, 1.0)) + uClampOffset;" +
         "\ntextureCoord = (uMapCoord * vec3(textureCoord, 1.0)).xy;" +
