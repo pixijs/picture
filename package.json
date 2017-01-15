@@ -30,6 +30,7 @@
     "CONTRIBUTING.md",
     "LICENSE",
     "package.json",
+    "tsconfig.json",
     "README.md"
   ],
   "devDependencies": {
