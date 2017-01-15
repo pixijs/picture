@@ -1,6 +1,6 @@
 # pixi-picture
 
-Quality renderer for sprites in pixi.js v4.
+Quality renderer for sprites in pixi.js v4.2 and up.
 
 Reduces border artifacts.
 
@@ -10,11 +10,13 @@ Please, don't add children to sprite if you use those blendModes.
 
 Use PIXI.extras.PictureSprite instead of PIXI.Sprite, or call renderer.plugins.picture from your own Sprite implementation.
 
+For pixi-v4.1 and prior see "pixi-v4.1" branch
+
 [Usage example](http://pixijs.github.io/examples/#/picture/overlay.js)
 
 ## How to build
 
 ```bash
 npm install
-gulp
+npm run build
 ```

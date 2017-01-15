@@ -1,12 +1,13 @@
 {
   "name": "pixi-picture",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Pixi.js heavy sprite renderer. Reduces border artifacts, allows to use advanced blend modes.",
   "author": "Ivan Popelyshev",
   "contributors": [
     "Ivan Popelyshev <ivan.popelyshev@gmail.com>"
   ],
-  "main": "./src/index.js",
+  "main": "./bin/pixi-tilemap.js",
+  "types": "./bin/pixi-tilemap.d.ts",
   "homepage": "http://www.pixijs.com/",
   "bugs": "https://github.com/pixijs/pixi-picture/issues",
   "license": "MIT",
