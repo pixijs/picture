@@ -1,4 +1,4 @@
-module PIXI.extras {
+module pixi_picture {
     interface InnerLib {
         vertUniforms: string,
         vertCode: string,
@@ -33,7 +33,7 @@ module PIXI.extras {
 
     export class PictureShader extends PIXI.Shader {
 
-        tempQuad: Quad;
+        tempQuad: PIXI.Quad;
         tilingMode: number;
 
         static blendVert = `
@@ -75,7 +75,7 @@ void main(void)
 
             this.bind()
             this.tilingMode = tilingMode;
-            this.tempQuad = new Quad(gl);
+            this.tempQuad = new PIXI.Quad(gl);
             this.tempQuad.initVao(this);
 
             this.uniforms.uColor = new Float32Array([1,1,1,1]);

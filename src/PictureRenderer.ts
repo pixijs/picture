@@ -1,4 +1,4 @@
-module PIXI.extras {
+module pixi_picture {
     function nextPow2(v: number): number {
         v += (v === 0)?1:0;
         --v;
@@ -10,8 +10,8 @@ module PIXI.extras {
         return v + 1;
     }
 
-    export class PictureRenderer extends ObjectRenderer {
-        constructor(renderer: WebGLRenderer) {
+    export class PictureRenderer extends PIXI.ObjectRenderer {
+        constructor(renderer: PIXI.WebGLRenderer) {
             super(renderer)
         }
 
@@ -70,7 +70,7 @@ module PIXI.extras {
             return buf;
         }
 
-        render(sprite: Sprite) {
+        render(sprite: PIXI.Sprite) {
             if (!sprite.texture.valid) {
                 return;
             }
@@ -88,14 +88,14 @@ module PIXI.extras {
             }
         }
 
-        _renderNormal(sprite: Sprite, shader: PictureShader) {
+        _renderNormal(sprite: PIXI.Sprite, shader: PictureShader) {
             const renderer = this.renderer;
             renderer.bindShader(shader);
             renderer.state.setBlendMode(sprite.blendMode);
             this._renderInner(sprite, shader);
         }
 
-        _renderBlend(sprite: Sprite, shader: PictureShader) {
+        _renderBlend(sprite: PIXI.Sprite, shader: PictureShader) {
             //nothing there yet
             const renderer = this.renderer;
             const spriteBounds = sprite.getBounds();
@@ -173,16 +173,16 @@ module PIXI.extras {
             this._renderInner(sprite, shader);
         }
 
-        _renderInner(sprite: Sprite, shader: PictureShader) {
+        _renderInner(sprite: PIXI.Sprite, shader: PictureShader) {
             const renderer = this.renderer;
             if (shader.tilingMode > 0) {
-                this._renderWithShader(sprite as TilingSprite, shader.tilingMode === 1, shader);
+                this._renderWithShader(sprite as PIXI.extras.TilingSprite, shader.tilingMode === 1, shader);
             } else {
                 this._renderSprite(sprite, shader);
             }
         }
 
-        _renderWithShader(ts: TilingSprite, isSimple: boolean, shader: PictureShader) {
+        _renderWithShader(ts: PIXI.extras.TilingSprite, isSimple: boolean, shader: PictureShader) {
             const quad = shader.tempQuad;
             const renderer = this.renderer;
             renderer.bindVao(quad.vao);
@@ -233,7 +233,7 @@ module PIXI.extras {
             const tex = (ts as any)._texture;
             const lt = ts.tileTransform.localTransform;
             const uv = ts.uvTransform;
-            const mapCoord : Matrix = (uv as any).mapCoord;
+            const mapCoord : PIXI.Matrix = (uv as any).mapCoord;
             const uClampFrame : Float32Array = (uv as any).uClampFrame;
             const uClampOffset : Float32Array = (uv as any).uClampOffset;
 
@@ -282,11 +282,11 @@ module PIXI.extras {
             quad.vao.draw(this.renderer.gl.TRIANGLES, 6, 0);
         }
 
-        _renderSprite(sprite: Sprite, shader: PictureShader) {
+        _renderSprite(sprite: PIXI.Sprite, shader: PictureShader) {
             const renderer = this.renderer;
             const quad = shader.tempQuad;
             renderer.bindVao(quad.vao);
-            const uvs : TextureUvs = (sprite.texture as any)._uvs;
+            const uvs : PIXI.TextureUvs = (sprite.texture as any)._uvs;
 
             //sprite already has calculated the vertices. lets transfer them to quad
 
@@ -340,21 +340,21 @@ module PIXI.extras {
             quad.vao.draw(this.renderer.gl.TRIANGLES, 6, 0);
         }
 
-        _isSimpleSprite(ts: Sprite): boolean {
+        _isSimpleSprite(ts: PIXI.Sprite): boolean {
             const renderer = this.renderer;
-            const tex : Texture = (ts as any)._texture;
+            const tex : PIXI.Texture = (ts as any)._texture;
             const baseTex = tex.baseTexture;
             let isSimple = (baseTex as any).isPowerOfTwo && tex.frame.width === baseTex.width && tex.frame.height === baseTex.height;
 
             // auto, force repeat wrapMode for big tiling textures
             if (isSimple) {
                 if (!(baseTex as any)._glTextures[renderer.CONTEXT_UID]) {
-                    if (baseTex.wrapMode === WRAP_MODES.CLAMP) {
-                        baseTex.wrapMode = WRAP_MODES.REPEAT;
+                    if (baseTex.wrapMode === PIXI.WRAP_MODES.CLAMP) {
+                        baseTex.wrapMode = PIXI.WRAP_MODES.REPEAT;
                     }
                 }
                 else {
-                    isSimple = baseTex.wrapMode !== WRAP_MODES.CLAMP;
+                    isSimple = baseTex.wrapMode !== PIXI.WRAP_MODES.CLAMP;
                 }
             }
 
@@ -363,5 +363,4 @@ module PIXI.extras {
     }
 
     PIXI.WebGLRenderer.registerPlugin('picture', PictureRenderer);
-    PIXI.CanvasRenderer.registerPlugin('picture', CanvasSpriteRenderer);
 }

@@ -1,6 +1,6 @@
-module PIXI.extras {
-    export class PictureSprite extends Sprite {
-        constructor(texture: Texture) {
+module pixi_picture {
+    export class PictureSprite extends PIXI.Sprite {
+        constructor(texture: PIXI.Texture) {
             super(texture);
             this.pluginName = 'picture'
         }
