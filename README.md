@@ -8,7 +8,7 @@ Allows to use blendModes that are not available in pure webgl implementation, su
 
 Please, don't add children to sprite if you use those blendModes.
 
-Use PIXI.extras.PictureSprite instead of PIXI.Sprite, or call renderer.plugins.picture from your own Sprite implementation.
+Use PIXI.picture.Sprite instead of PIXI.Sprite, or call renderer.plugins.picture from your own Sprite implementation.
 
 For pixi-v4.1 and prior see "pixi-v4.1" branch
 

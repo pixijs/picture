@@ -1,4 +1,4 @@
-module PIXI.extras {
+namespace pixi_picture {
     export function mapFilterBlendModesToPixi(gl: WebGLRenderingContext, array: Array<Array<PictureShader>> = []): Array<Array<PictureShader>>
     {
         //TODO - premultiply alpha would be different.

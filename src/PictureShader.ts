@@ -1,4 +1,4 @@
-module PIXI.extras {
+namespace pixi_picture {
     interface InnerLib {
         vertUniforms: string,
         vertCode: string,
@@ -6,7 +6,7 @@ module PIXI.extras {
         fragCode: string
     }
 
-    var shaderLib: InnerLib[] = [
+    const shaderLib: InnerLib[] = [
         {
             vertUniforms: "",
             vertCode: "vTextureCoord = aTextureCoord;",
@@ -33,7 +33,7 @@ module PIXI.extras {
 
     export class PictureShader extends PIXI.Shader {
 
-        tempQuad: Quad;
+        tempQuad: PIXI.Quad;
         tilingMode: number;
 
         static blendVert = `
@@ -66,16 +66,16 @@ void main(void)
          * @param tilingMode {number} 0 for default, 1 for simple tiling, 2 for tiling
          */
         constructor(gl: WebGLRenderingContext, vert: string, frag: string, tilingMode: number) {
-            var lib = shaderLib[tilingMode];
+            const lib = shaderLib[tilingMode];
             super(gl,
                 vert.replace(/%SPRITE_UNIFORMS%/gi, lib.vertUniforms)
                     .replace(/%SPRITE_CODE%/gi, lib.vertCode),
                 frag.replace(/%SPRITE_UNIFORMS%/gi, lib.fragUniforms)
                     .replace(/%SPRITE_CODE%/gi, lib.fragCode));
 
-            this.bind()
+            this.bind();
             this.tilingMode = tilingMode;
-            this.tempQuad = new Quad(gl);
+            this.tempQuad = new PIXI.Quad(gl);
             this.tempQuad.initVao(this);
 
             this.uniforms.uColor = new Float32Array([1,1,1,1]);

@@ -1,4 +1,11 @@
-module PIXI.extras {
+namespace pixi_picture {
+    import Matrix = PIXI.Matrix;
+    import Sprite = PIXI.Sprite;
+	import Texture = PIXI.Texture;
+    import TextureUvs = PIXI.TextureUvs;
+    import TilingSprite = PIXI.extras.TilingSprite;
+    import WRAP_MODES = PIXI.WRAP_MODES;
+
     function nextPow2(v: number): number {
         v += (v === 0)?1:0;
         --v;
@@ -10,8 +17,8 @@ module PIXI.extras {
         return v + 1;
     }
 
-    export class PictureRenderer extends ObjectRenderer {
-        constructor(renderer: WebGLRenderer) {
+    export class PictureRenderer extends PIXI.ObjectRenderer {
+        constructor(renderer: PIXI.WebGLRenderer) {
             super(renderer)
         }
 
@@ -363,5 +370,5 @@ module PIXI.extras {
     }
 
     PIXI.WebGLRenderer.registerPlugin('picture', PictureRenderer);
-    PIXI.CanvasRenderer.registerPlugin('picture', CanvasSpriteRenderer);
+    PIXI.CanvasRenderer.registerPlugin('picture', PIXI.CanvasSpriteRenderer as any);
 }

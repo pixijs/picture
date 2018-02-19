@@ -1,4 +1,4 @@
-module PIXI.extras {
+namespace pixi_picture {
     var overlayFrag = `
 varying vec2 vTextureCoord;
 varying vec2 vMapCoord;

@@ -1,6 +1,4 @@
-
-
-module PIXI.extras {
+namespace pixi_picture {
 
     var normalFrag = `
 varying vec2 vTextureCoord;
