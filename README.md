@@ -1,5 +1,7 @@
 # pixi-picture
 
+[![Build Status](https://travis-ci.org/pixijs/pixi-picture.svg?branch=master)](https://travis-ci.org/pixijs/pixi-picture)
+
 Quality renderer for sprites in pixi.js v4.2 and up.
 
 Reduces border artifacts.
