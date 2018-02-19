@@ -1,6 +1,6 @@
 {
   "name": "pixi-picture",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Pixi.js heavy sprite renderer. Reduces border artifacts, allows to use advanced blend modes.",
   "author": "Ivan Popelyshev",
   "contributors": [

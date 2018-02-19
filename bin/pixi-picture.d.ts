@@ -56,6 +56,11 @@ declare module PIXI.picture {
     }
 }
 declare module PIXI.picture {
+    class SoftLightShader extends PictureShader {
+        constructor(gl: WebGLRenderingContext, tilingMode: number);
+    }
+}
+declare module PIXI.picture {
     class Sprite extends PIXI.Sprite {
         constructor(texture: PIXI.Texture);
     }

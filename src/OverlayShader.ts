@@ -1,5 +1,5 @@
 namespace pixi_picture {
-    var overlayFrag = `
+    const overlayFrag = `
 varying vec2 vTextureCoord;
 varying vec2 vMapCoord;
 varying vec4 vColor;

@@ -71,6 +71,7 @@ var pixi_picture;
         if (array === void 0) { array = []; }
         array[PIXI.BLEND_MODES.OVERLAY] = [new pixi_picture.OverlayShader(gl, 0), new pixi_picture.OverlayShader(gl, 1), new pixi_picture.OverlayShader(gl, 2)];
         array[PIXI.BLEND_MODES.HARD_LIGHT] = [new pixi_picture.HardLightShader(gl, 0), new pixi_picture.HardLightShader(gl, 1), new pixi_picture.HardLightShader(gl, 2)];
+        array[PIXI.BLEND_MODES.SOFT_LIGHT] = [new pixi_picture.SoftLightShader(gl, 0), new pixi_picture.SoftLightShader(gl, 1), new pixi_picture.SoftLightShader(gl, 2)];
         return array;
     }
     pixi_picture.mapFilterBlendModesToPixi = mapFilterBlendModesToPixi;
@@ -384,6 +385,18 @@ var pixi_picture;
     pixi_picture.PictureRenderer = PictureRenderer;
     PIXI.WebGLRenderer.registerPlugin('picture', PictureRenderer);
     PIXI.CanvasRenderer.registerPlugin('picture', PIXI.CanvasSpriteRenderer);
+})(pixi_picture || (pixi_picture = {}));
+var pixi_picture;
+(function (pixi_picture) {
+    var softLightFrag = "\nvarying vec2 vTextureCoord;\nvarying vec2 vMapCoord;\nvarying vec4 vColor;\n \nuniform sampler2D uSampler[2];\nuniform vec4 uColor;\n%SPRITE_UNIFORMS%\n\nvoid main(void)\n{\n    %SPRITE_CODE%\n    vec4 source = texture2D(uSampler[0], textureCoord) * uColor;\n    vec4 target = texture2D(uSampler[1], vMapCoord);\n\n    if (source.a == 0.0) {\n        gl_FragColor = vec4(0, 0, 0, 0);\n        return;\n    }\n    vec3 Cb = source.rgb/source.a, Cs;\n    if (target.a > 0.0) {\n        Cs = target.rgb / target.a;\n    }\n    \n    vec3 first = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);\n\n    vec3 B;\n    vec3 D;\n    if (Cs.r <= 0.5)\n    {\n        B.r = first.r;\n    }\n    else\n    {\n        if (Cb.r <= 0.25)\n        {\n            D.r = ((16.0 * Cb.r - 12.0) * Cb.r + 4.0) * Cb.r;    \n        }\n        else\n        {\n            D.r = sqrt(Cb.r);\n        }\n        B.r = Cb.r + (2.0 * Cs.r - 1.0) * (D.r - Cb.r);\n    }\n    if (Cs.g <= 0.5)\n    {\n        B.g = first.g;\n    }\n    else\n    {\n        if (Cb.g <= 0.25)\n        {\n            D.g = ((16.0 * Cb.g - 12.0) * Cb.g + 4.0) * Cb.g;    \n        }\n        else\n        {\n            D.g = sqrt(Cb.g);\n        }\n        B.g = Cb.g + (2.0 * Cs.g - 1.0) * (D.g - Cb.g);\n    }\n    if (Cs.b <= 0.5)\n    {\n        B.b = first.b;\n    }\n    else\n    {\n        if (Cb.b <= 0.25)\n        {\n            D.b = ((16.0 * Cb.b - 12.0) * Cb.b + 4.0) * Cb.b;    \n        }\n        else\n        {\n            D.b = sqrt(Cb.b);\n        }\n        B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);\n    }   \n\n    vec4 res;\n\n    res.xyz = (1.0 - source.a) * Cs + source.a * B;\n    res.a = source.a + target.a * (1.0-source.a);\n    gl_FragColor = vec4(res.xyz * res.a, res.a);\n}\n";
+    var SoftLightShader = (function (_super) {
+        __extends(SoftLightShader, _super);
+        function SoftLightShader(gl, tilingMode) {
+            return _super.call(this, gl, pixi_picture.PictureShader.blendVert, softLightFrag, tilingMode) || this;
+        }
+        return SoftLightShader;
+    }(pixi_picture.PictureShader));
+    pixi_picture.SoftLightShader = SoftLightShader;
 })(pixi_picture || (pixi_picture = {}));
 var pixi_picture;
 (function (pixi_picture) {
