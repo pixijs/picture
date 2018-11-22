@@ -1,13 +1,13 @@
 {
   "name": "pixi-picture",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Pixi.js heavy sprite renderer. Reduces border artifacts, allows to use advanced blend modes.",
   "author": "Ivan Popelyshev",
   "contributors": [
     "Ivan Popelyshev <ivan.popelyshev@gmail.com>"
   ],
-  "main": "./bin/pixi-picture.js",
-  "types": "./bin/pixi-picture.d.ts",
+  "main": "./dist/pixi-picture.js",
+  "types": "./dist/pixi-picture.d.ts",
   "homepage": "http://www.pixijs.com/",
   "bugs": "https://github.com/pixijs/pixi-picture/issues",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "url": "https://github.com/pixijs/pixi-picture.git"
   },
   "scripts": {
-    "cleanup": "rimraf bin && mkdirp bin",
+    "cleanup": "rimraf dist && mkdirp dist",
     "prestart": "yarn cleanup",
     "start": "parallelshell \"yarn watch\"",
     "watch": "tsc -w",
@@ -30,7 +30,7 @@
     "check:all": "yarn build && yarn check:browserify && yarn check:webpack && yarn check:vanillajs"
   },
   "files": [
-    "bin/",
+    "dist/",
     "src/",
     "CONTRIBUTING.md",
     "LICENSE",
@@ -39,7 +39,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "checkpack": "~0.1.0",
+    "checkpack": "~0.2.7",
     "del": "~2.2.0",
     "glob": "~7.1.1",
     "jaguarjs-jsdoc": "~1.0.1",

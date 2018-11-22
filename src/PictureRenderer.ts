@@ -19,7 +19,7 @@ namespace pixi_picture {
 
     export class PictureRenderer extends PIXI.ObjectRenderer {
         constructor(renderer: PIXI.WebGLRenderer) {
-            super(renderer)
+            super(renderer);
         }
 
         drawModes: Array<Array<PictureShader>>;
@@ -35,7 +35,10 @@ namespace pixi_picture {
         _renderTexture: PIXI.BaseRenderTexture;
 
         onContextChange() {
+	        filterManagerMixin(this.renderer.filterManager);
+
             const gl = this.renderer.gl;
+
             this.drawModes = mapFilterBlendModesToPixi(gl);
             this.normalShader = [new NormalShader(gl, 0), new NormalShader(gl, 1), new NormalShader(gl, 2)];
             this._tempClamp = new Float32Array(4);

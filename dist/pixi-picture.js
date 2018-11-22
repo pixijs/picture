@@ -10,6 +10,251 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var pixi_picture;
 (function (pixi_picture) {
+    function filterManagerMixin(fm) {
+        if (fm.prepareBackdrop)
+            return;
+        fm.pushFilter = pushFilter;
+        fm.popFilter = popFilter;
+        fm.syncUniforms = syncUniforms;
+        fm.prepareBackdrop = prepareBackdrop;
+    }
+    pixi_picture.filterManagerMixin = filterManagerMixin;
+    function pushFilter(target, filters) {
+        var renderer = this.renderer;
+        var filterData = this.filterData;
+        if (!filterData) {
+            filterData = this.renderer._activeRenderTarget.filterStack;
+            var filterState = new FilterState();
+            filterState.sourceFrame = filterState.destinationFrame = this.renderer._activeRenderTarget.size;
+            filterState.renderTarget = renderer._activeRenderTarget;
+            this.renderer._activeRenderTarget.filterData = filterData = {
+                index: 0,
+                stack: [filterState],
+            };
+            this.filterData = filterData;
+        }
+        var currentState = filterData.stack[++filterData.index];
+        var renderTargetFrame = filterData.stack[0].destinationFrame;
+        if (!currentState) {
+            currentState = filterData.stack[filterData.index] = new FilterState();
+        }
+        var fullScreen = target.filterArea
+            && target.filterArea.x === 0
+            && target.filterArea.y === 0
+            && target.filterArea.width === renderer.screen.width
+            && target.filterArea.height === renderer.screen.height;
+        var resolution = filters[0].resolution;
+        var padding = filters[0].padding | 0;
+        var targetBounds = fullScreen ? renderer.screen : (target.filterArea || target.getBounds(true));
+        var sourceFrame = currentState.sourceFrame;
+        var destinationFrame = currentState.destinationFrame;
+        sourceFrame.x = ((targetBounds.x * resolution) | 0) / resolution;
+        sourceFrame.y = ((targetBounds.y * resolution) | 0) / resolution;
+        sourceFrame.width = ((targetBounds.width * resolution) | 0) / resolution;
+        sourceFrame.height = ((targetBounds.height * resolution) | 0) / resolution;
+        if (!fullScreen) {
+            if (filterData.stack[0].renderTarget.transform) {
+            }
+            else if (filters[0].autoFit) {
+                sourceFrame.fit(renderTargetFrame);
+            }
+            sourceFrame.pad(padding);
+        }
+        for (var i = 0; i < filters.length; i++) {
+            var backdrop = null;
+            if (filters[i].backdropUniformName) {
+                if (backdrop === null) {
+                    backdrop = this.prepareBackdrop(sourceFrame);
+                }
+                filters[i]._backdropRenderTarget = backdrop;
+            }
+        }
+        destinationFrame.width = sourceFrame.width;
+        destinationFrame.height = sourceFrame.height;
+        var renderTarget = this.getPotRenderTarget(renderer.gl, sourceFrame.width, sourceFrame.height, resolution);
+        currentState.target = target;
+        currentState.filters = filters;
+        currentState.resolution = resolution;
+        currentState.renderTarget = renderTarget;
+        renderTarget.setFrame(destinationFrame, sourceFrame);
+        renderer.bindRenderTarget(renderTarget);
+        renderTarget.clear(filters[filters.length - 1].clearColor);
+    }
+    function popFilter() {
+        var filterData = this.filterData;
+        var lastState = filterData.stack[filterData.index - 1];
+        var currentState = filterData.stack[filterData.index];
+        this.quad.map(currentState.renderTarget.size, currentState.sourceFrame).upload();
+        var filters = currentState.filters;
+        if (filters.length === 1) {
+            filters[0].apply(this, currentState.renderTarget, lastState.renderTarget, false, currentState);
+            this.freePotRenderTarget(currentState.renderTarget);
+        }
+        else {
+            var flip = currentState.renderTarget;
+            var flop = this.getPotRenderTarget(this.renderer.gl, currentState.sourceFrame.width, currentState.sourceFrame.height, currentState.resolution);
+            flop.setFrame(currentState.destinationFrame, currentState.sourceFrame);
+            flop.clear();
+            var i = 0;
+            for (i = 0; i < filters.length - 1; ++i) {
+                filters[i].apply(this, flip, flop, true, currentState);
+                var t = flip;
+                flip = flop;
+                flop = t;
+            }
+            filters[i].apply(this, flip, lastState.renderTarget, false, currentState);
+            this.freePotRenderTarget(flip);
+            this.freePotRenderTarget(flop);
+        }
+        currentState.clear();
+        var backdropFree = false;
+        for (var i = 0; i < filters.length; i++) {
+            if (filters[i]._backdropRenderTarget) {
+                if (!backdropFree) {
+                    this.freePotRenderTarget(filters[i]._backdropRenderTarget);
+                    backdropFree = true;
+                }
+                filters[i]._backdropRenderTarget = null;
+            }
+        }
+        filterData.index--;
+        if (filterData.index === 0) {
+            this.filterData = null;
+        }
+    }
+    function syncUniforms(shader, filter) {
+        var renderer = this.renderer;
+        var gl = renderer.gl;
+        var uniformData = filter.uniformData;
+        var uniforms = filter.uniforms;
+        var textureCount = 1;
+        var currentState;
+        if (shader.uniforms.filterArea) {
+            currentState = this.filterData.stack[this.filterData.index];
+            var filterArea = shader.uniforms.filterArea;
+            filterArea[0] = currentState.renderTarget.size.width;
+            filterArea[1] = currentState.renderTarget.size.height;
+            filterArea[2] = currentState.sourceFrame.x;
+            filterArea[3] = currentState.sourceFrame.y;
+            shader.uniforms.filterArea = filterArea;
+        }
+        if (shader.uniforms.filterClamp) {
+            currentState = currentState || this.filterData.stack[this.filterData.index];
+            var filterClamp = shader.uniforms.filterClamp;
+            filterClamp[0] = 0;
+            filterClamp[1] = 0;
+            filterClamp[2] = (currentState.sourceFrame.width - 1) / currentState.renderTarget.size.width;
+            filterClamp[3] = (currentState.sourceFrame.height - 1) / currentState.renderTarget.size.height;
+            shader.uniforms.filterClamp = filterClamp;
+        }
+        for (var i in uniformData) {
+            if (!shader.uniforms.data[i]) {
+                continue;
+            }
+            if (i === filter.backdropUniformName) {
+                var rt = filter._backdropRenderTarget;
+                shader.uniforms[i] = textureCount;
+                renderer.boundTextures[textureCount] = renderer.emptyTextures[textureCount];
+                gl.activeTexture(gl.TEXTURE0 + textureCount);
+                gl.bindTexture(gl.TEXTURE_2D, rt.texture.texture);
+                textureCount++;
+                continue;
+            }
+            var type = uniformData[i].type;
+            if (type === 'sampler2d' && uniforms[i] !== 0) {
+                if (uniforms[i].baseTexture) {
+                    shader.uniforms[i] = this.renderer.bindTexture(uniforms[i].baseTexture, textureCount);
+                }
+                else {
+                    shader.uniforms[i] = textureCount;
+                    var gl_1 = this.renderer.gl;
+                    renderer.boundTextures[textureCount] = renderer.emptyTextures[textureCount];
+                    gl_1.activeTexture(gl_1.TEXTURE0 + textureCount);
+                    uniforms[i].texture.bind();
+                }
+                textureCount++;
+            }
+            else if (type === 'mat3') {
+                if (uniforms[i].a !== undefined) {
+                    shader.uniforms[i] = uniforms[i].toArray(true);
+                }
+                else {
+                    shader.uniforms[i] = uniforms[i];
+                }
+            }
+            else if (type === 'vec2') {
+                if (uniforms[i].x !== undefined) {
+                    var val = shader.uniforms[i] || new Float32Array(2);
+                    val[0] = uniforms[i].x;
+                    val[1] = uniforms[i].y;
+                    shader.uniforms[i] = val;
+                }
+                else {
+                    shader.uniforms[i] = uniforms[i];
+                }
+            }
+            else if (type === 'float') {
+                if (shader.uniforms.data[i].value !== uniformData[i]) {
+                    shader.uniforms[i] = uniforms[i];
+                }
+            }
+            else {
+                shader.uniforms[i] = uniforms[i];
+            }
+        }
+    }
+    function prepareBackdrop(bounds) {
+        var renderer = this.renderer;
+        var renderTarget = renderer._activeRenderTarget;
+        if (renderTarget.root) {
+            return null;
+        }
+        var resolution = renderTarget.resolution;
+        var fr = renderTarget.sourceFrame || renderTarget.destinationFrame;
+        bounds.fit(fr);
+        var x = (bounds.x - fr.x) * resolution;
+        var y = (bounds.y - fr.y) * resolution;
+        var w = (bounds.width) * resolution;
+        var h = (bounds.height) * resolution;
+        var gl = renderer.gl;
+        var rt = this.getPotRenderTarget(gl, w, h, 1);
+        renderer.boundTextures[1] = renderer.emptyTextures[1];
+        gl.activeTexture(gl.TEXTURE0 + 1);
+        gl.bindTexture(gl.TEXTURE_2D, rt.texture.texture);
+        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
+        return rt;
+    }
+    var FilterState = (function () {
+        function FilterState() {
+            this.renderTarget = null;
+            this.target = null;
+            this.resolution = 1;
+            this.sourceFrame = new PIXI.Rectangle();
+            this.destinationFrame = new PIXI.Rectangle();
+            this.filters = [];
+        }
+        FilterState.prototype.clear = function () {
+            this.filters = null;
+            this.target = null;
+            this.renderTarget = null;
+        };
+        return FilterState;
+    }());
+    var BackdropFilter = (function (_super) {
+        __extends(BackdropFilter, _super);
+        function BackdropFilter() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.backdropUniformName = null;
+            _this._backdropRenderTarget = null;
+            _this.clearColor = null;
+            return _this;
+        }
+        return BackdropFilter;
+    }(PIXI.Filter));
+    pixi_picture.BackdropFilter = BackdropFilter;
+})(pixi_picture || (pixi_picture = {}));
+var pixi_picture;
+(function (pixi_picture) {
     var shaderLib = [
         {
             vertUniforms: "",
@@ -120,6 +365,7 @@ var pixi_picture;
             return _super.call(this, renderer) || this;
         }
         PictureRenderer.prototype.onContextChange = function () {
+            pixi_picture.filterManagerMixin(this.renderer.filterManager);
             var gl = this.renderer.gl;
             this.drawModes = pixi_picture.mapFilterBlendModesToPixi(gl);
             this.normalShader = [new pixi_picture.NormalShader(gl, 0), new pixi_picture.NormalShader(gl, 1), new pixi_picture.NormalShader(gl, 2)];

@@ -1,5 +1,14 @@
 /// <reference types="pixi.js" />
 declare module PIXI.picture {
+    function filterManagerMixin(fm: PIXI.FilterManager): void;
+    class BackdropFilter<T> extends PIXI.Filter<T> {
+        backdropUniformName: string;
+        _backdropRenderTarget: PIXI.RenderTarget;
+        clearColor: Float32Array;
+        uniformData: PIXI.UniformDataMap<T>;
+    }
+}
+declare module PIXI.picture {
     class HardLightShader extends PictureShader {
         constructor(gl: WebGLRenderingContext, tilingMode: number);
     }

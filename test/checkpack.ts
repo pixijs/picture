@@ -1,5 +1,5 @@
 import 'pixi.js';
-import '../bin/pixi-picture.js';
+import '../dist/pixi-picture.js';
 
 //@../node_modules/pixi.js/dist/pixi.min.js
 //@../bin/pixi-picture.js
