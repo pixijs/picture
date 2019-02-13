@@ -337,7 +337,11 @@ namespace pixi_picture {
 		gl.bindTexture(gl.TEXTURE_2D, rt.texture.texture);
 
 		// v4 drops current renderTarget on new renderTexture, need to restore it!
-		renderer.bindRenderTarget(renderTarget);
+		if (!rt.rebound) {
+			renderer._activeRenderTarget = null;
+			renderer.bindRenderTarget(renderTarget);
+			rt.rebound = true;
+		}
 
 		gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
 		return rt;
