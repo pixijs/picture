@@ -63,7 +63,7 @@ namespace pixi_picture {
         _getRenderTexture(minWidth: number, minHeight: number) {
             if (this._renderTexture.width < minWidth ||
                 this._renderTexture.height < minHeight) {
-                minHeight = nextPow2(minWidth);
+                minWidth = nextPow2(minWidth);
                 minHeight = nextPow2(minHeight);
                 this._renderTexture.resize(minWidth, minHeight);
             }
