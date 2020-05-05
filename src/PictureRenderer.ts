@@ -35,7 +35,7 @@ namespace pixi_picture {
         _renderTexture: PIXI.BaseRenderTexture;
 
         onContextChange() {
-	        filterManagerMixin(this.renderer.filterManager);
+	        filterSystemMixin(this.renderer.filterManager);
 
             const gl = this.renderer.gl;
 
