@@ -23,20 +23,22 @@ void main(void)
 {
    vec4 b_src = texture2D(uSampler, vTextureCoord);
    vec4 b_dest = texture2D(uBackdrop, vTextureCoord);
-   vec4 b_res = src;
+   vec4 b_res = b_dest;
    
    %BLEND_CODE%
 
    gl_FragColor = b_res;
 }`;
 
-    export class BlendFilter extends PIXI.Filter {
+    export class BlendFilter extends BackdropFilter {
         constructor(shaderParts: IBlendShaderParts) {
             let fragCode = filterFrag;
             fragCode = fragCode.replace('%UNIFORM_CODE%', shaderParts.uniformCode || "");
             fragCode = fragCode.replace('%BLEND_CODE%', shaderParts.blendCode || "");
 
             super(undefined, fragCode, shaderParts.uniforms);
+
+            this.backdropUniformName = 'uBackdrop';
         }
     }
 }

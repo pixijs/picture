@@ -40,6 +40,6 @@
     "rimraf": "^2.5.3",
     "tmp": "^0.0.33",
     "typescript": "^3.6.3",
-    "pixi.js-legacy": "^5.2.3"
+    "pixi.js": "^5.3.2"
   }
 }

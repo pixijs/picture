@@ -27,7 +27,7 @@ tmp.file(function (err, filename) {
     fs.writeFileSync(
       path.resolve('dist/pixi-picture.d.ts'),
       dtsContent.replace(/namespace pixi_picture/g, 'namespace PIXI.picture')
-		  .replacepixi_picture/g, 'PIXI.blit')
+		  .replace(/pixi_picture/g, 'PIXI.picture')
     );
   });
 }, {postfix: '.ts'});

@@ -1,7 +1,12 @@
 declare namespace PIXI {
-    declare namespace systems {
+    namespace systems {
         interface FilterSystem {
             prepareBackdrop(sourceFrame: PIXI.Rectangle): PIXI.RenderTexture;
+            pushWithCheck(target: PIXI.DisplayObject, filters: Array<Filter>, checkEmptyBounds?: boolean): boolean;
+        }
+
+        interface TextureSystem {
+            bindForceLocation(texture: BaseTexture, location: number): void;
         }
     }
 }
@@ -22,11 +27,21 @@ namespace pixi_picture {
             (b1 <= b2);
     }
 
-    function push(this: PIXI.systems.FilterSystem,
-                  target: PIXI.DisplayObject, filters: Array<BackdropFilter>) {
+    PIXI.systems.TextureSystem.prototype.bindForceLocation = function(texture: PIXI.BaseTexture, location = 0) {
+        const { gl } = this;
+        if (this.currentLocation !== location)
+        {
+            this.currentLocation = location;
+            gl.activeTexture(gl.TEXTURE0 + location);
+        }
+        this.bind(texture, location);
+    }
+
+    function pushWithCheck(this: PIXI.systems.FilterSystem,
+                  target: PIXI.DisplayObject, filters: Array<BackdropFilter>, checkEmptyBounds: boolean = true) {
         const renderer = this.renderer;
         const filterStack = this.defaultFilterStack;
-        const state = this.statePool.pop() || new FilterState();
+        const state = this.statePool.pop() || new (PIXI as any).FilterState();
 
         let resolution = filters[0].resolution;
         let padding = filters[0].padding;
@@ -64,18 +79,15 @@ namespace pixi_picture {
 
         state.sourceFrame.copyFrom(target.filterArea || target.getBounds(true));
 
-        state.sourceFrame.pad(padding);
-        if (autoFit) {
-            state.sourceFrame.fit(this.renderer.renderTexture.sourceFrame);
-        }
-
-        // Backdrop hack start
         let canUseBackdrop = true;
         state.sourceFrame.pad(padding);
         if (autoFit) {
             state.sourceFrame.fit(this.renderer.renderTexture.sourceFrame);
         } else {
             canUseBackdrop = containsRect(this.renderer.renderTexture.sourceFrame, state.sourceFrame);
+        }
+        if (checkEmptyBounds && state.sourceFrame.width <= 1 && state.sourceFrame.height <= 1) {
+            return false;
         }
 
         // round to whole number based on resolution
@@ -105,10 +117,22 @@ namespace pixi_picture {
         state.destinationFrame.width = state.renderTexture.width;
         state.destinationFrame.height = state.renderTexture.height;
 
+        const destinationFrame = this.tempRect;
+
+        destinationFrame.width = state.sourceFrame.width;
+        destinationFrame.height = state.sourceFrame.height;
+
         state.renderTexture.filterFrame = state.sourceFrame;
 
-        renderer.renderTexture.bind(state.renderTexture, state.sourceFrame);// /, state.destinationFrame);
+        renderer.renderTexture.bind(state.renderTexture, state.sourceFrame, destinationFrame);
         renderer.renderTexture.clear();
+
+        return true;
+    }
+
+    function push(this: PIXI.systems.FilterSystem,
+                  target: PIXI.DisplayObject, filters: Array<PIXI.Filter>) {
+        return this.pushWithCheck(target, filters, false);
     }
 
     function pop(this: PIXI.systems.FilterSystem) {
@@ -143,7 +167,8 @@ namespace pixi_picture {
         inputClamp[3] = (state.sourceFrame.height * inputSize[3]) - (0.5 * inputPixel[3]);
 
         // only update the rect if its legacy..
-        if (state.legacy) {
+        if (state.legacy)
+        {
             const filterArea = globalUniforms.filterArea;
 
             filterArea[0] = state.destinationFrame.width;
@@ -158,15 +183,19 @@ namespace pixi_picture {
 
         const lastState = filterStack[filterStack.length - 1];
 
-        if ((state.renderTexture.framebuffer as any).multisample > 1) {
-            (this.renderer.framebuffer as any).blit();
+        if (state.renderTexture.framebuffer.multisample > 1)
+        {
+            this.renderer.framebuffer.blit();
         }
 
-        if (filters.length === 1) {
-            filters[0].apply(this, state.renderTexture, lastState.renderTexture, 0, state);
+        if (filters.length === 1)
+        {
+            filters[0].apply(this, state.renderTexture, lastState.renderTexture, PIXI.CLEAR_MODES.BLEND, state);
 
             this.returnFilterTexture(state.renderTexture);
-        } else {
+        }
+        else
+        {
             let flip = state.renderTexture;
             let flop = this.getOptimalFilterTexture(
                 flip.width,
@@ -178,8 +207,9 @@ namespace pixi_picture {
 
             let i = 0;
 
-            for (i = 0; i < filters.length - 1; ++i) {
-                filters[i].apply(this, flip, flop, 1, state);
+            for (i = 0; i < filters.length - 1; ++i)
+            {
+                filters[i].apply(this, flip, flop, PIXI.CLEAR_MODES.CLEAR, state);
 
                 const t = flip;
 
@@ -187,7 +217,7 @@ namespace pixi_picture {
                 flop = t;
             }
 
-            filters[i].apply(this, flip, lastState.renderTexture, 0, state);
+            filters[i].apply(this, flip, lastState.renderTexture, PIXI.CLEAR_MODES.BLEND, state);
 
             this.returnFilterTexture(flip);
             this.returnFilterTexture(flop);
@@ -211,6 +241,8 @@ namespace pixi_picture {
         this.statePool.push(state);
     }
 
+    let hadBackbufferError = false;
+
     /**
      * Takes a part of current render target corresponding to bounds
      * fits sourceFrame to current render target frame to evade problems
@@ -221,6 +253,10 @@ namespace pixi_picture {
         const fr = this.renderer.renderTexture.sourceFrame;
 
         if (!renderTarget) {
+            if (!hadBackbufferError) {
+                hadBackbufferError = true;
+                console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer! That wont work.');
+            }
             return null;
         }
 
@@ -242,39 +278,8 @@ namespace pixi_picture {
         return rt;
     }
 
-    interface IFilterTarget {
-        filterArea: PIXI.Rectangle;
-
-        getBounds(skipUpdate?: boolean): PIXI.Rectangle;
-    }
-
-    class FilterState {
-        renderTexture: PIXI.RenderTexture;
-        target: IFilterTarget;
-        legacy: boolean;
-        resolution: number;
-        sourceFrame: PIXI.Rectangle;
-        destinationFrame: PIXI.Rectangle;
-        filters: Array<PIXI.Filter>;
-
-        constructor() {
-            this.renderTexture = null;
-            this.target = null;
-            this.legacy = false;
-            this.resolution = 1;
-            this.sourceFrame = new PIXI.Rectangle();
-            this.destinationFrame = new PIXI.Rectangle();
-            this.filters = [];
-        }
-
-        clear(): void {
-            this.target = null;
-            this.filters = null;
-            this.renderTexture = null;
-        }
-    }
-
-    PIXI.systems.FilterSystem.prototype.push = push as any;
+    PIXI.systems.FilterSystem.prototype.push = push;
+    PIXI.systems.FilterSystem.prototype.pushWithCheck = pushWithCheck as any;
     PIXI.systems.FilterSystem.prototype.pop = pop;
     PIXI.systems.FilterSystem.prototype.prepareBackdrop = prepareBackdrop;
 }
