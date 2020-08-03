@@ -87,6 +87,9 @@ namespace pixi_picture {
             canUseBackdrop = containsRect(this.renderer.renderTexture.sourceFrame, state.sourceFrame);
         }
         if (checkEmptyBounds && state.sourceFrame.width <= 1 && state.sourceFrame.height <= 1) {
+            filterStack.pop();
+            state.clear();
+            this.statePool.push(state);
             return false;
         }
 

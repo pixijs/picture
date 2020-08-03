@@ -26,6 +26,7 @@ namespace pixi_picture {
             renderer.plugins[this.pluginName].render(this);
 
             if (blendFilterArray) {
+                renderer.batch.flush();
                 renderer.filter.pop();
             }
         }
