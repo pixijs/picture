@@ -1,83 +1,57 @@
-/// <reference types="pixi.js" />
-declare module PIXI.picture {
-    function filterManagerMixin(fm: PIXI.FilterManager): void;
-    class BackdropFilter<T> extends PIXI.Filter<T> {
+declare namespace PIXI.picture {
+    class BackdropFilter extends PIXI.Filter {
         backdropUniformName: string;
-        _backdropRenderTarget: PIXI.RenderTarget;
+        _backdropActive: boolean;
         clearColor: Float32Array;
-        uniformData: PIXI.UniformDataMap<T>;
+    }
+    interface IBlendShaderParts {
+        uniformCode?: string;
+        uniforms?: {
+            [key: string]: any;
+        };
+        blendCode: string;
+    }
+    class BlendFilter extends BackdropFilter {
+        constructor(shaderParts: IBlendShaderParts);
     }
 }
-declare module PIXI.picture {
-    class HardLightShader extends PictureShader {
-        constructor(gl: WebGLRenderingContext, tilingMode: number);
+declare namespace PIXI {
+    namespace systems {
+        interface FilterSystem {
+            prepareBackdrop(sourceFrame: PIXI.Rectangle): PIXI.RenderTexture;
+            pushWithCheck(target: PIXI.DisplayObject, filters: Array<Filter>, checkEmptyBounds?: boolean): boolean;
+        }
+        interface TextureSystem {
+            bindForceLocation(texture: BaseTexture, location: number): void;
+        }
     }
 }
-declare module PIXI.picture {
-    function mapFilterBlendModesToPixi(gl: WebGLRenderingContext, array?: Array<Array<PictureShader>>): Array<Array<PictureShader>>;
+declare namespace PIXI.picture {
 }
-declare module PIXI.picture {
-    class NormalShader extends PictureShader {
-        constructor(gl: WebGLRenderingContext, tilingMode: number);
+declare namespace PIXI.picture {
+    namespace blends {
+        const NPM_BLEND = "if (b_src.a == 0.0) {\n    gl_FragColor = vec4(0, 0, 0, 0);\n    return;\n}\nvec3 Cb = b_src.rgb / b_src.a, Cs;\nif (b_dest.a > 0.0) {\n    Cs = b_dest.rgb / b_dest.a;\n}\n%NPM_BLEND%\nb_res.a = b_src.a + b_dest.a * (1.0-b_src.a);\nb_res.rgb = (1.0 - b_src.a) * Cs + b_src.a * B;\nb_res.rgb *= b_res.a;\n";
+        const OVERLAY_PART = "vec3 multiply = Cb * Cs * 2.0;\nvec3 Cb2 = Cb * 2.0 - 1.0;\nvec3 screen = Cb2 + Cs - Cb2 * Cs;\nvec3 B;\nif (Cs.r <= 0.5) {\n    B.r = multiply.r;\n} else {\n    B.r = screen.r;\n}\nif (Cs.g <= 0.5) {\n    B.g = multiply.g;\n} else {\n    B.g = screen.g;\n}\nif (Cs.b <= 0.5) {\n    B.b = multiply.b;\n} else {\n    B.b = screen.b;\n}\n";
+        const HARDLIGHT_PART = "vec3 multiply = Cb * Cs * 2.0;\nvec3 Cs2 = Cs * 2.0 - 1.0;\nvec3 screen = Cb + Cs2 - Cb * Cs2;\nvec3 B;\nif (Cb.r <= 0.5) {\n    B.r = multiply.r;\n} else {\n    B.r = screen.r;\n}\nif (Cb.g <= 0.5) {\n    B.g = multiply.g;\n} else {\n    B.g = screen.g;\n}\nif (Cb.b <= 0.5) {\n    B.b = multiply.b;\n} else {\n    B.b = screen.b;\n}\n";
+        const SOFTLIGHT_PART = "vec3 first = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);\nvec3 B;\nvec3 D;\nif (Cs.r <= 0.5)\n{\n    B.r = first.r;\n}\nelse\n{\n    if (Cb.r <= 0.25)\n    {\n        D.r = ((16.0 * Cb.r - 12.0) * Cb.r + 4.0) * Cb.r;    \n    }\n    else\n    {\n        D.r = sqrt(Cb.r);\n    }\n    B.r = Cb.r + (2.0 * Cs.r - 1.0) * (D.r - Cb.r);\n}\nif (Cs.g <= 0.5)\n{\n    B.g = first.g;\n}\nelse\n{\n    if (Cb.g <= 0.25)\n    {\n        D.g = ((16.0 * Cb.g - 12.0) * Cb.g + 4.0) * Cb.g;    \n    }\n    else\n    {\n        D.g = sqrt(Cb.g);\n    }\n    B.g = Cb.g + (2.0 * Cs.g - 1.0) * (D.g - Cb.g);\n}\nif (Cs.b <= 0.5)\n{\n    B.b = first.b;\n}\nelse\n{\n    if (Cb.b <= 0.25)\n    {\n        D.b = ((16.0 * Cb.b - 12.0) * Cb.b + 4.0) * Cb.b;    \n    }\n    else\n    {\n        D.b = sqrt(Cb.b);\n    }\n    B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);\n}\n";
+        const MULTIPLY_FULL = "if (dest.a > 0.0) {\n   b_res.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);\n   b_res.a = min(src.a + dest.a - src.a * dest.a, 1.0);\n   b_res.rgb *= mult.a;\n}\n";
+        const OVERLAY_FULL: string;
+        const HARDLIGHT_FULL: string;
+        const SOFTLIGHT_FULL: string;
+        const blendFullArray: Array<string>;
     }
+    function getBlendFilter(blendMode: PIXI.BLEND_MODES): BlendFilter;
+    function getBlendFilterArray(blendMode: PIXI.BLEND_MODES): BlendFilter[];
 }
-declare module PIXI.picture {
-    class OverlayShader extends PictureShader {
-        constructor(gl: WebGLRenderingContext, tilingMode: number);
-    }
-}
-declare module PIXI.picture {
-    import Sprite = PIXI.Sprite;
-    import TilingSprite = PIXI.extras.TilingSprite;
-    class PictureRenderer extends PIXI.ObjectRenderer {
-        constructor(renderer: PIXI.WebGLRenderer);
-        drawModes: Array<Array<PictureShader>>;
-        normalShader: Array<PictureShader>;
-        _tempClamp: Float32Array;
-        _tempColor: Float32Array;
-        _tempRect: PIXI.Rectangle;
-        _tempRect2: PIXI.Rectangle;
-        _tempRect3: PIXI.Rectangle;
-        _tempMatrix: PIXI.Matrix;
-        _tempMatrix2: PIXI.Matrix;
-        _bigBuf: Uint8Array;
-        _renderTexture: PIXI.BaseRenderTexture;
-        onContextChange(): void;
-        start(): void;
-        flush(): void;
-        _getRenderTexture(minWidth: number, minHeight: number): PIXI.BaseRenderTexture;
-        _getBuf(size: number): Float32Array;
-        render(sprite: Sprite): void;
-        _renderNormal(sprite: Sprite, shader: PictureShader): void;
-        _renderBlend(sprite: Sprite, shader: PictureShader): void;
-        _renderInner(sprite: Sprite, shader: PictureShader): void;
-        _renderWithShader(ts: TilingSprite, isSimple: boolean, shader: PictureShader): void;
-        _renderSprite(sprite: Sprite, shader: PictureShader): void;
-        _isSimpleSprite(ts: Sprite): boolean;
-    }
-}
-declare module PIXI.picture {
-    class PictureShader extends PIXI.Shader {
-        tempQuad: PIXI.Quad;
-        tilingMode: number;
-        static blendVert: string;
-        constructor(gl: WebGLRenderingContext, vert: string, frag: string, tilingMode: number);
-    }
-}
-declare module PIXI.picture {
-    class SoftLightShader extends PictureShader {
-        constructor(gl: WebGLRenderingContext, tilingMode: number);
-    }
-}
-declare module PIXI.picture {
+declare namespace PIXI.picture {
     class Sprite extends PIXI.Sprite {
-        constructor(texture: PIXI.Texture);
+        _render(renderer: PIXI.Renderer): void;
     }
 }
-declare module PIXI.picture {
-    class TilingSprite extends PIXI.extras.TilingSprite {
-        constructor(texture: PIXI.Texture);
+declare namespace PIXI.picture {
+    class TilingSprite extends PIXI.TilingSprite {
+        _render(renderer: PIXI.Renderer): void;
     }
 }
-declare module PIXI.picture {
+declare namespace PIXI.picture {
 }
