@@ -1,6 +1,6 @@
 # pixi-picture
 
-## Blend-modes emulater through filters
+## Blend-modes emulated through filters
 
 Allows to use blendModes that are not available in pure webgl implementation, such as `PIXI.BLEND_MODES.OVERLAY`.
 
@@ -25,6 +25,7 @@ Enables `backdropSampler` uniform in filters, works only if you render stage to 
 Sample DisplacementFilter takes everything from container and applies it as a displacement texture on backdrop.
 
 [Displacement example](https://pixijs.github.io/examples/#/plugin-picture/displacement.js)
+
 [Pixelate example](https://pixijs.github.io/examples/#/plugin-picture/pixelate.js)
 
 ## Compatibility
@@ -32,8 +33,10 @@ Sample DisplacementFilter takes everything from container and applies it as a di
 Compatible with PixiJS 5.3.2 and up. No guarantee for earlier versions!
 
 For PixiJS `v4.1` and prior see `pixi-v4.1` branch
+
 For PixiJS `v4.7` and prior see `pixi-v4.2` branch
-For PixiJS `v4.9` and prior see `v4.x` branch
+
+For PixiJS `v4.9` and prior see `v4.x` branch , npm 1.3.2
 
 ## How to build
 
