@@ -128,7 +128,7 @@ namespace pixi_picture {
         state.renderTexture.filterFrame = state.sourceFrame;
 
         renderer.renderTexture.bind(state.renderTexture, state.sourceFrame, destinationFrame);
-        renderer.renderTexture.clear();
+        renderer.renderTexture.clear(filters[filters.length - 1].clearColor as any);
 
         return true;
     }

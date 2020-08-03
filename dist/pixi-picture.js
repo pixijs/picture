@@ -131,7 +131,7 @@ var pixi_picture;
         destinationFrame.height = state.sourceFrame.height;
         state.renderTexture.filterFrame = state.sourceFrame;
         renderer.renderTexture.bind(state.renderTexture, state.sourceFrame, destinationFrame);
-        renderer.renderTexture.clear();
+        renderer.renderTexture.clear(filters[filters.length - 1].clearColor);
         return true;
     }
     function push(target, filters) {
