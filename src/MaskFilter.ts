@@ -28,17 +28,14 @@ namespace pixi_picture {
             const target = filterManager.getFilterTexture(input);
             if (this.config.maskBefore) {
                 const {blendMode} = this.state;
-
                 this.state.blendMode = PIXI.BLEND_MODES.NONE;
-                filterManager.applyFilter(this, input, target, PIXI.CLEAR_MODES.BLIT);
+                filterManager.applyFilter(this, input, target, PIXI.CLEAR_MODES.YES);
                 this.baseFilter.blendMode = blendMode;
                 this.baseFilter.apply(filterManager, target, output, clearMode);
                 this.state.blendMode = blendMode;
             } else {
                 const {uBackdrop} = this.uniforms;
-
-                this.baseFilter.blendMode = PIXI.BLEND_MODES.NONE;
-                this.baseFilter.apply(filterManager, uBackdrop, target, PIXI.CLEAR_MODES.BLIT);
+                this.baseFilter.apply(filterManager, uBackdrop, target, PIXI.CLEAR_MODES.YES);
                 this.uniforms.uBackdrop = target;
                 filterManager.applyFilter(this, input, output, clearMode);
                 this.uniforms.uBackdrop = uBackdrop;
