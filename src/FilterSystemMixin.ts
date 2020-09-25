@@ -275,6 +275,7 @@ namespace pixi_picture {
         const gl = renderer.gl;
         const rt = this.getOptimalFilterTexture(w, h, 1);
 
+        rt.filterFrame = fr;
         renderer.texture.bindForceLocation(rt.baseTexture, 0);
         gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
 
