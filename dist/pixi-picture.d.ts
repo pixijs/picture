@@ -29,6 +29,27 @@ declare namespace PIXI {
 declare namespace PIXI.picture {
 }
 declare namespace PIXI.picture {
+    enum MASK_CHANNEL {
+        RED = 0,
+        GREEN = 1,
+        BLUE = 2,
+        ALPHA = 3
+    }
+    class MaskConfig {
+        maskBefore: boolean;
+        constructor(maskBefore?: boolean, channel?: MASK_CHANNEL);
+        uniformCode: string;
+        uniforms: any;
+        blendCode: string;
+    }
+    class MaskFilter extends BlendFilter {
+        baseFilter: PIXI.Filter;
+        config: MaskConfig;
+        constructor(baseFilter: PIXI.Filter, config?: MaskConfig);
+        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES): void;
+    }
+}
+declare namespace PIXI.picture {
     namespace blends {
         const NPM_BLEND = "if (b_src.a == 0.0) {\n    gl_FragColor = vec4(0, 0, 0, 0);\n    return;\n}\nvec3 Cb = b_src.rgb / b_src.a, Cs;\nif (b_dest.a > 0.0) {\n    Cs = b_dest.rgb / b_dest.a;\n}\n%NPM_BLEND%\nb_res.a = b_src.a + b_dest.a * (1.0-b_src.a);\nb_res.rgb = (1.0 - b_src.a) * Cs + b_src.a * B;\nb_res.rgb *= b_res.a;\n";
         const OVERLAY_PART = "vec3 multiply = Cb * Cs * 2.0;\nvec3 Cb2 = Cb * 2.0 - 1.0;\nvec3 screen = Cb2 + Cs - Cb2 * Cs;\nvec3 B;\nif (Cs.r <= 0.5) {\n    B.r = multiply.r;\n} else {\n    B.r = screen.r;\n}\nif (Cs.g <= 0.5) {\n    B.g = multiply.g;\n} else {\n    B.g = screen.g;\n}\nif (Cs.b <= 0.5) {\n    B.b = multiply.b;\n} else {\n    B.b = screen.b;\n}\n";
