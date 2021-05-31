@@ -1,32 +1,35 @@
-namespace pixi_picture {
-    export class Sprite extends PIXI.Sprite {
-        _render(renderer: PIXI.Renderer): void
-        {
-            const texture = (this as any)._texture;
+import {Sprite as SpriteBase} from '@pixi/sprite';
+import {Renderer} from "@pixi/core";
+import {getBlendFilterArray} from "./ShaderParts";
+import {IPictureFilterSystem} from "./FilterSystemMixin";
 
-            if (!texture || !texture.valid)
-            {
+export class Sprite extends SpriteBase {
+    _render(renderer: Renderer): void
+    {
+        const texture = (this as any)._texture;
+
+        if (!texture || !texture.valid)
+        {
+            return;
+        }
+
+
+        const blendFilterArray = getBlendFilterArray(this.blendMode);
+
+        if (blendFilterArray) {
+            renderer.batch.flush();
+            if (!(renderer.filter as IPictureFilterSystem).pushWithCheck(this, blendFilterArray)) {
                 return;
             }
+        }
 
+        this.calculateVertices();
+        renderer.batch.setObjectRenderer(renderer.plugins[this.pluginName]);
+        renderer.plugins[this.pluginName].render(this);
 
-            const blendFilterArray = getBlendFilterArray(this.blendMode);
-
-            if (blendFilterArray) {
-                renderer.batch.flush();
-                if (!renderer.filter.pushWithCheck(this, blendFilterArray)) {
-                    return;
-                }
-            }
-
-            this.calculateVertices();
-            renderer.batch.setObjectRenderer(renderer.plugins[this.pluginName]);
-            renderer.plugins[this.pluginName].render(this);
-
-            if (blendFilterArray) {
-                renderer.batch.flush();
-                renderer.filter.pop();
-            }
+        if (blendFilterArray) {
+            renderer.batch.flush();
+            renderer.filter.pop();
         }
     }
 }
