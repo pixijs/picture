@@ -1,5 +1,19 @@
 # pixi-picture
 
+Compatible with PixiJS `6.0.4` and up. No guarantee for earlier versions!
+
+### Usage
+```js
+import * as PIXI from 'pixi.js';
+import {Sprite, getBlendFilter} from '@pixi/picture';
+// hacked sprite or tilingSprite
+const sprite = new Sprite();
+sprite.blendMode = PIXI.BLEND_MODES.OVERLAY;
+// for other kind of elements
+const graphics = new PIXI.Graphics();
+graphics.filters = [getBlendFilter(PIXI.BLEND_MODES.OVERLAY)];
+```
+
 ## Blend-modes emulated through filters
 
 Allows to use blendModes that are not available in pure webgl implementation, such as `PIXI.BLEND_MODES.OVERLAY`.
@@ -28,11 +42,9 @@ Sample DisplacementFilter takes everything from container and applies it as a di
 
 [Pixelate example](https://pixijs.github.io/examples/#/plugin-picture/pixelate.js)
 
-## Compatibility
+## Previous versions
 
-Compatible with PixiJS `6.0.4` and up. No guarantee for earlier versions!
-
-For PixiJS `v5` and prior see README `pixi-v5` branch, or just use npm package `pixi-picture=2.0.3`
+For PixiJS `v5` and prior see README `pixi-v5` branch, or just use npm package `pixi-picture`
 
 ## How to build
 
