@@ -3,12 +3,12 @@ import {BLEND_MODES} from "@pixi/constants";
 
 export const NPM_BLEND: string =
     `if (b_src.a == 0.0) {
-gl_FragColor = vec4(0, 0, 0, 0);
-return;
+  gl_FragColor = vec4(0, 0, 0, 0);
+  return;
 }
 vec3 Cb = b_src.rgb / b_src.a, Cs;
 if (b_dest.a > 0.0) {
-Cs = b_dest.rgb / b_dest.a;
+  Cs = b_dest.rgb / b_dest.a;
 }
 %NPM_BLEND%
 b_res.a = b_src.a + b_dest.a * (1.0-b_src.a);
@@ -23,19 +23,19 @@ vec3 Cb2 = Cb * 2.0 - 1.0;
 vec3 screen = Cb2 + Cs - Cb2 * Cs;
 vec3 B;
 if (Cs.r <= 0.5) {
-B.r = multiply.r;
+  B.r = multiply.r;
 } else {
-B.r = screen.r;
+  B.r = screen.r;
 }
 if (Cs.g <= 0.5) {
-B.g = multiply.g;
+  B.g = multiply.g;
 } else {
-B.g = screen.g;
+  B.g = screen.g;
 }
 if (Cs.b <= 0.5) {
-B.b = multiply.b;
+  B.b = multiply.b;
 } else {
-B.b = screen.b;
+  B.b = screen.b;
 }
 `;
 
@@ -45,19 +45,19 @@ vec3 Cs2 = Cs * 2.0 - 1.0;
 vec3 screen = Cb + Cs2 - Cb * Cs2;
 vec3 B;
 if (Cb.r <= 0.5) {
-B.r = multiply.r;
+  B.r = multiply.r;
 } else {
-B.r = screen.r;
+  B.r = screen.r;
 }
 if (Cb.g <= 0.5) {
-B.g = multiply.g;
+  B.g = multiply.g;
 } else {
-B.g = screen.g;
+  B.g = screen.g;
 }
 if (Cb.b <= 0.5) {
-B.b = multiply.b;
+  B.b = multiply.b;
 } else {
-B.b = screen.b;
+  B.b = screen.b;
 }
 `;
 
@@ -67,59 +67,59 @@ vec3 B;
 vec3 D;
 if (Cs.r <= 0.5)
 {
-B.r = first.r;
+  B.r = first.r;
 }
 else
 {
-if (Cb.r <= 0.25)
-{
-D.r = ((16.0 * Cb.r - 12.0) * Cb.r + 4.0) * Cb.r;    
-}
-else
-{
-D.r = sqrt(Cb.r);
-}
-B.r = Cb.r + (2.0 * Cs.r - 1.0) * (D.r - Cb.r);
+  if (Cb.r <= 0.25)
+  {
+    D.r = ((16.0 * Cb.r - 12.0) * Cb.r + 4.0) * Cb.r;    
+  }
+  else
+  {
+    D.r = sqrt(Cb.r);
+  }
+  B.r = Cb.r + (2.0 * Cs.r - 1.0) * (D.r - Cb.r);
 }
 if (Cs.g <= 0.5)
 {
-B.g = first.g;
+  B.g = first.g;
 }
 else
 {
-if (Cb.g <= 0.25)
-{
-D.g = ((16.0 * Cb.g - 12.0) * Cb.g + 4.0) * Cb.g;    
-}
-else
-{
-D.g = sqrt(Cb.g);
-}
-B.g = Cb.g + (2.0 * Cs.g - 1.0) * (D.g - Cb.g);
+  if (Cb.g <= 0.25)
+  {
+    D.g = ((16.0 * Cb.g - 12.0) * Cb.g + 4.0) * Cb.g;    
+  }
+  else
+  {
+    D.g = sqrt(Cb.g);
+  }
+  B.g = Cb.g + (2.0 * Cs.g - 1.0) * (D.g - Cb.g);
 }
 if (Cs.b <= 0.5)
 {
-B.b = first.b;
+  B.b = first.b;
 }
 else
 {
-if (Cb.b <= 0.25)
-{
-D.b = ((16.0 * Cb.b - 12.0) * Cb.b + 4.0) * Cb.b;    
-}
-else
-{
-D.b = sqrt(Cb.b);
-}
-B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);
+  if (Cb.b <= 0.25)
+  {
+    D.b = ((16.0 * Cb.b - 12.0) * Cb.b + 4.0) * Cb.b;    
+  }
+  else
+  {
+    D.b = sqrt(Cb.b);
+  }
+  B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);
 }
 `;
 
 export const MULTIPLY_FULL: string =
     `if (dest.a > 0.0) {
-b_res.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
-b_res.a = min(src.a + dest.a - src.a * dest.a, 1.0);
-b_res.rgb *= mult.a;
+  b_res.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
+  b_res.a = min(src.a + dest.a - src.a * dest.a, 1.0);
+  b_res.rgb *= mult.a;
 }
 `;
 export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
