@@ -1,4 +1,5 @@
 export * from './BlendFilter';
+export * from './FlipYFilter';
 export * from './MaskFilter';
 export * from './ShaderParts';
 export * from './Sprite';

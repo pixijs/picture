@@ -17,13 +17,15 @@ varying vec2 vTextureCoord;
 
 uniform sampler2D uSampler;
 uniform sampler2D uBackdrop;
+uniform vec2 uBackdrop_flipY;
 
 %UNIFORM_CODE%
 
 void main(void)
 {
+   vec2 backdropCoord = vec2(vTextureCoord.x, uBackdrop_flipY.x + uBackdrop_flipY.y * vTextureCoord.y);
    vec4 b_src = texture2D(uSampler, vTextureCoord);
-   vec4 b_dest = texture2D(uBackdrop, vTextureCoord);
+   vec4 b_dest = texture2D(uBackdrop, backdropCoord);
    vec4 b_res = b_dest;
    
    %BLEND_CODE%

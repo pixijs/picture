@@ -30,6 +30,10 @@ docs/
 # ESM
 lib
 
+# UMD
+dist/pixi-picture.js
+dist/pixi-picture.js.map
+
 # tsc compile
 compile
 

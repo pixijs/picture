@@ -5,7 +5,7 @@ import {DisplayObject} from '@pixi/display';
 import {BackdropFilter} from "./BlendFilter";
 
 export interface IPictureFilterSystem extends FilterSystem {
-    prepareBackdrop(sourceFrame: Rectangle): RenderTexture;
+    prepareBackdrop(sourceFrame: Rectangle, flipY: Float32Array): RenderTexture;
 
     pushWithCheck(target: DisplayObject, filters: Array<Filter>, checkEmptyBounds?: boolean): boolean;
 }
@@ -122,14 +122,24 @@ function pushWithCheck(this: IPictureFilterSystem,
     // detect backdrop uniform
     if (canUseBackdrop) {
         let backdrop = null;
+        let backdropFlip = null;
         for (let i = 0; i < filters.length; i++) {
             const bName = filters[i].backdropUniformName;
             if (bName) {
+                const { uniforms } = filters[i];
+                if (!uniforms[bName + '_flipY']) {
+                    uniforms[bName + '_flipY'] = new Float32Array([0.0, 1.0]);
+                }
+                const flip = uniforms[bName + '_flipY'];
                 if (backdrop === null) {
-                    backdrop = this.prepareBackdrop(state.sourceFrame);
+                    backdrop = this.prepareBackdrop(state.sourceFrame, flip);
+                    backdropFlip = flip;
+                } else {
+                    flip[0] = backdropFlip[0];
+                    flip[1] = backdropFlip[1];
                 }
 
-                filters[i].uniforms[bName] = backdrop;
+                uniforms[bName] = backdrop;
                 if (backdrop) {
                     filters[i]._backdropActive = true;
                 }
@@ -288,37 +298,48 @@ let hadBackbufferError = false;
  * Takes a part of current render target corresponding to bounds
  * fits sourceFrame to current render target frame to evade problems
  */
-function prepareBackdrop(bounds: Rectangle): RenderTexture {
+function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture {
     const renderer = this.renderer;
     const renderTarget = renderer.renderTexture.current;
     const fr = this.renderer.renderTexture.sourceFrame;
+    const tf = renderer.projection.transform || Matrix.IDENTITY;
 
-    //TODO: take destinationFrame into account, all according to ShukantPal refactoring
+    //TODO: take non-standart sourceFrame/destinationFrame into account, all according to ShukantPal refactoring
 
-    if (!renderTarget) {
-        if (!hadBackbufferError) {
-            hadBackbufferError = true;
-            console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer! That wont work.');
+    let resolution = 1;
+    if (renderTarget) {
+        resolution = renderTarget.baseTexture.resolution;
+        flipY[1] = 1.0;
+    } else {
+        if (!renderer.useContextAlpha) {
+            if (!hadBackbufferError) {
+                hadBackbufferError = true;
+                console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer! That wont work.');
+            }
+            return null;
         }
-        return null;
+        resolution = renderer.resolution;
+        flipY[1] = -1.0;
     }
-
-    const resolution = renderTarget.baseTexture.resolution;
 
     //bounds.fit(fr);
 
-    const x = (bounds.x - fr.x) * resolution;
-    const y = (bounds.y - fr.y) * resolution;
-    const w = (bounds.width) * resolution;
-    const h = (bounds.height) * resolution;
+    const x = Math.round((bounds.x - fr.x + tf.tx) * resolution);
+    const dy = bounds.y - fr.y + tf.ty;
+    const y = Math.round((flipY[1] < 0.0 ? fr.height - (dy + bounds.height) : dy) * resolution);
+    const w = Math.round(bounds.width * resolution);
+    const h = Math.round(bounds.height * resolution);
 
     const gl = renderer.gl;
     const rt = this.getOptimalFilterTexture(w, h, 1);
 
+    if (flipY[1] < 0) {
+        flipY[0] = h / rt.height;
+    }
+
     rt.filterFrame = fr;
     renderer.texture.bindForceLocation(rt.baseTexture, 0);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
-
     return rt;
 }
 

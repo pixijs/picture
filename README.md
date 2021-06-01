@@ -14,13 +14,17 @@ const graphics = new PIXI.Graphics();
 graphics.filters = [getBlendFilter(PIXI.BLEND_MODES.OVERLAY)];
 ```
 
+### Known bugs
+
+* `renderer.render(stage, {transform})` produces wrong result if transform has scale
+
 ## Blend-modes emulated through filters
 
 Allows to use blendModes that are not available in pure webgl implementation, such as `PIXI.BLEND_MODES.OVERLAY`.
 
 Please, don't add children to sprite if you use those blendModes.
 
-Use `import { Sprite } from '@pixi/picture'` instead of `PIXI.Sprite`. You can re-export it instead of pixi sprite if you use custom pixi build.
+Use `import { Sprite } from '@pixi/picture'` instead of `PIXI.Sprite` (do not use `Sprite.from`). You can re-export it instead of pixi sprite if you use custom pixi build.
 
 [Overlay example](https://pixijs.github.io/examples/#/plugin-picture/overlay.js)
 
@@ -34,13 +38,24 @@ Assigning a filter to component directly `container.filters = [getBlendFilter(bl
 
 ## Heavenly filter feature
 
-Enables `backdropSampler` uniform in filters, works only if you render stage to renderTexture or you have a filter somewhere in parents. 
+Enables `backdropSampler` uniform in filters, works only if you render stage to renderTexture or you have a filter somewhere in parents.
 
 Sample DisplacementFilter takes everything from container and applies it as a displacement texture on backdrop.
 
 [Displacement example](https://pixijs.github.io/examples/#/plugin-picture/displacement.js)
 
 [Pixelate example](https://pixijs.github.io/examples/#/plugin-picture/pixelate.js)
+
+## Drawing from main framebuffer
+
+Since version `3.0.1`, pixi-picture finally does not need filter above it. However, that comes with a problem: WebGL main framebuffer is flipped by Y.
+
+You have to use `backdropSampler_flipY` uniform in your blend filters to transform Y coord in case renderTexture was flipped.
+
+If specified `useContextAlpha: false` in renderer creation parameters, main framebuffer is RGB and not RGBA, its not possible to `copyTex` it, you will see corresponding warning message in the console.
+
+When using `MaskFilter` with `maskBefore=true`, input is automatically flipped by Y. This operation is not needed if your base filter does not care about flipping Y, for example `BlurFilter` or `ColorMatrixFilter`.
+In this case, you can specify `maskFilter.safeFlipY=true`, that will turn off extra flipping. 
 
 ## Previous versions
 

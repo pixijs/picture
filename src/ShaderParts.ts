@@ -1,7 +1,7 @@
 import {BlendFilter} from "./BlendFilter";
 import {BLEND_MODES} from "@pixi/constants";
 
-export const NPM_BLEND =
+export const NPM_BLEND: string =
     `if (b_src.a == 0.0) {
 gl_FragColor = vec4(0, 0, 0, 0);
 return;
@@ -17,7 +17,7 @@ b_res.rgb *= b_res.a;
 `;
 
 //reverse hardlight
-export const OVERLAY_PART =
+export const OVERLAY_PART: string =
     `vec3 multiply = Cb * Cs * 2.0;
 vec3 Cb2 = Cb * 2.0 - 1.0;
 vec3 screen = Cb2 + Cs - Cb2 * Cs;
@@ -39,7 +39,7 @@ B.b = screen.b;
 }
 `;
 
-export const HARDLIGHT_PART =
+export const HARDLIGHT_PART: string =
     `vec3 multiply = Cb * Cs * 2.0;
 vec3 Cs2 = Cs * 2.0 - 1.0;
 vec3 screen = Cb + Cs2 - Cb * Cs2;
@@ -61,7 +61,7 @@ B.b = screen.b;
 }
 `;
 
-export const SOFTLIGHT_PART =
+export const SOFTLIGHT_PART: string =
     `vec3 first = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);
 vec3 B;
 vec3 D;
@@ -115,7 +115,7 @@ B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);
 }
 `;
 
-export const MULTIPLY_FULL =
+export const MULTIPLY_FULL: string =
     `if (dest.a > 0.0) {
 b_res.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
 b_res.a = min(src.a + dest.a - src.a * dest.a, 1.0);
