@@ -1,4 +1,4 @@
-# pixi-picture
+# @pixi/picture
 
 Compatible with PixiJS `6.0.4` and up. No guarantee for earlier versions!
 
@@ -56,6 +56,20 @@ If specified `useContextAlpha: false` in renderer creation parameters, main fram
 
 When using `MaskFilter` with `maskBefore=true`, input is automatically flipped by Y. This operation is not needed if your base filter does not care about flipping Y, for example `BlurFilter` or `ColorMatrixFilter`.
 In this case, you can specify `maskFilter.safeFlipY=true`, that will turn off extra flipping. 
+
+## Vanilla JS, UMD build
+
+All pixiJS v6 plugins has special `umd` build suited for vanilla.   
+Navigate `pixi-picture` npm package, take `dist/pixi-picture.umd.js` file.
+
+```html
+<script src='lib/pixi.js'></script>
+<script src='lib/pixi-picture.umd.js'></script>
+```
+
+```js
+let sprite = new PIXI.picture.Sprite();
+```
 
 ## Previous versions
 
