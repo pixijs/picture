@@ -42,7 +42,6 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@pixi/canvas-renderer": "^6.0.4",
     "@pixi/constants": "^6.0.4",
     "@pixi/core": "^6.0.4",
     "@pixi/display": "^6.0.4",
