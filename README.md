@@ -1,4 +1,4 @@
-# @pixi/picture
+# @pixi/picture - PixiJS Picture Kit
 
 Compatible with PixiJS `6.0.4` and up. No guarantee for earlier versions!
 
