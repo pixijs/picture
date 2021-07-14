@@ -2,6 +2,7 @@ import {Sprite as SpriteBase} from '@pixi/sprite';
 import {Renderer} from "@pixi/core";
 import {getBlendFilterArray} from "./ShaderParts";
 import {IPictureFilterSystem} from "./FilterSystemMixin";
+import {BLEND_MODES} from "@pixi/constants";
 
 export class Sprite extends SpriteBase {
     _render(renderer: Renderer): void
@@ -15,12 +16,14 @@ export class Sprite extends SpriteBase {
 
 
         const blendFilterArray = getBlendFilterArray(this.blendMode);
+        const cacheBlend = this.blendMode;
 
         if (blendFilterArray) {
             renderer.batch.flush();
             if (!(renderer.filter as IPictureFilterSystem).pushWithCheck(this, blendFilterArray)) {
                 return;
             }
+            this.blendMode = BLEND_MODES.NORMAL;
         }
 
         this.calculateVertices();
@@ -30,6 +33,7 @@ export class Sprite extends SpriteBase {
         if (blendFilterArray) {
             renderer.batch.flush();
             renderer.filter.pop();
+            this.blendMode = cacheBlend;
         }
     }
 }
