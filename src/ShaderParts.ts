@@ -10,11 +10,11 @@ if (b_dest.a == 0.0) {
   gl_FragColor = b_src;
   return;
 }
-vec3 Cb = b_src.rgb / b_src.a;
-vec3 Cs = b_dest.rgb / b_dest.a;
+vec3 Cb = b_dest.rgb / b_dest.a;
+vec3 Cs = b_src.rgb / b_src.a;
 %NPM_BLEND%
 b_res.a = b_src.a + b_dest.a * (1.0-b_src.a);
-b_res.rgb = (1.0 - b_src.a) * Cs + b_src.a * B;
+b_res.rgb = (1.0 - b_dest.a) * Cs + b_dest.a * B;
 b_res.rgb *= b_res.a;
 `;
 
@@ -117,18 +117,13 @@ else
 }
 `;
 
-export const MULTIPLY_FULL: string =
-    `if (b_dest.a == 0.0) {
-  gl_FragColor = b_src;
-  return;
-}
-b_res.rgb = (b_dest.rgb / b_dest.a) * ((1.0 - b_src.a) + b_src.rgb);
-b_res.a = min(b_src.a + b_dest.a - b_src.a * b_dest.a, 1.0);
-b_res.rgb *= b_res.a;
+export const MULTIPLY_PART: string =
+    `vec3 B = Cs * Cb;
 `;
 export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
 export const HARDLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HARDLIGHT_PART);
 export const SOFTLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, SOFTLIGHT_PART);
+export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, MULTIPLY_PART);
 
 export const blendFullArray: Array<string> = [];
 
