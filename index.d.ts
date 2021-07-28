@@ -82,6 +82,8 @@ export declare class MaskFilter extends BlendFilter {
 
 export declare const MULTIPLY_FULL: string;
 
+export declare const MULTIPLY_PART: string;
+
 export declare const NPM_BLEND: string;
 
 export declare const OVERLAY_FULL: string;

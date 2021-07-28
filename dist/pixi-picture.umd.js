@@ -1,8 +1,8 @@
 /* eslint-disable */
  
 /*!
- * @pixi/picture - v3.0.3
- * Compiled Mon, 26 Jul 2021 15:24:51 UTC
+ * @pixi/picture - v3.0.4
+ * Compiled Wed, 28 Jul 2021 10:26:51 UTC
  *
  * @pixi/picture is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -169,11 +169,11 @@ if (b_dest.a == 0.0) {
   gl_FragColor = b_src;
   return;
 }
-vec3 Cb = b_src.rgb / b_src.a;
-vec3 Cs = b_dest.rgb / b_dest.a;
+vec3 Cb = b_dest.rgb / b_dest.a;
+vec3 Cs = b_src.rgb / b_src.a;
 %NPM_BLEND%
 b_res.a = b_src.a + b_dest.a * (1.0-b_src.a);
-b_res.rgb = (1.0 - b_src.a) * Cs + b_src.a * B;
+b_res.rgb = (1.0 - b_dest.a) * Cs + b_dest.a * B;
 b_res.rgb *= b_res.a;
 `;
    const OVERLAY_PART = `vec3 multiply = Cb * Cs * 2.0;
@@ -268,17 +268,12 @@ else
   B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);
 }
 `;
-   const MULTIPLY_FULL = `if (b_dest.a == 0.0) {
-  gl_FragColor = b_src;
-  return;
-}
-b_res.rgb = (b_dest.rgb / b_dest.a) * ((1.0 - b_src.a) + b_src.rgb);
-b_res.a = min(b_src.a + b_dest.a - b_src.a * b_dest.a, 1.0);
-b_res.rgb *= b_res.a;
+   const MULTIPLY_PART = `vec3 B = Cs * Cb;
 `;
    const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
    const HARDLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HARDLIGHT_PART);
    const SOFTLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, SOFTLIGHT_PART);
+   const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, MULTIPLY_PART);
    const blendFullArray = [];
    blendFullArray[constants.BLEND_MODES.MULTIPLY] = MULTIPLY_FULL;
    blendFullArray[constants.BLEND_MODES.OVERLAY] = OVERLAY_FULL;
@@ -600,6 +595,7 @@ b_res.rgb *= b_res.a;
    exports.HARDLIGHT_FULL = HARDLIGHT_FULL;
    exports.HARDLIGHT_PART = HARDLIGHT_PART;
    exports.MULTIPLY_FULL = MULTIPLY_FULL;
+   exports.MULTIPLY_PART = MULTIPLY_PART;
    exports.MaskConfig = MaskConfig;
    exports.MaskFilter = MaskFilter;
    exports.NPM_BLEND = NPM_BLEND;
