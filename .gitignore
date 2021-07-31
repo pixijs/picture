@@ -31,8 +31,7 @@ docs/
 lib
 
 # UMD
-dist/pixi-picture.js
-dist/pixi-picture.js.map
+dist
 
 # tsc compile
 compile
