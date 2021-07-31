@@ -42,6 +42,8 @@ Enables `backdropSampler` uniform in filters, works only if you render stage to 
 
 Sample DisplacementFilter takes everything from container and applies it as a displacement texture on backdrop.
 
+Note: Currently, if there is a filter that uses backdrop on the element - all filters use resolution from backdrop, you cannot set custom resolution for them!
+
 [Displacement example](https://pixijs.github.io/examples/#/plugin-picture/displacement.js)
 
 [Pixelate example](https://pixijs.github.io/examples/#/plugin-picture/pixelate.js)

@@ -145,6 +145,11 @@ function pushWithCheck(this: IPictureFilterSystem,
                 }
             }
         }
+
+        if (backdrop)
+        {
+            resolution = state.resolution = backdrop.resolution;
+        }
     }
 
     state.renderTexture = this.getOptimalFilterTexture(state.sourceFrame.width, state.sourceFrame.height, resolution);
@@ -338,6 +343,7 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture 
     }
 
     rt.filterFrame = fr;
+    rt.setResolution(resolution);
     renderer.texture.bindForceLocation(rt.baseTexture, 0);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
     return rt;
