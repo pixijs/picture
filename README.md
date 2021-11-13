@@ -14,6 +14,10 @@ const graphics = new PIXI.Graphics();
 graphics.filters = [getBlendFilter(PIXI.BLEND_MODES.OVERLAY)];
 ```
 
+## Tutorials
+
+* http://www.shukantpal.com/blog/pixijs/pixijs-picture-kit/
+
 ### Known bugs
 
 * `renderer.render(stage, {transform})` produces wrong result if transform has scale
