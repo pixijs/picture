@@ -6,8 +6,6 @@ import {Filter} from '@pixi/core';
  * A backdrop filter can use existing colors in the destination framebuffer to calculate the
  * output colors. It does not need to rely on in-built {@link PIXI.BLEND_MODES blend modes} to
  * do those calculations.
- *
- * @pixi/picture
  */
 export class BackdropFilter extends Filter {
     /**
