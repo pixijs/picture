@@ -73,7 +73,7 @@ export class MaskFilter extends BlendFilter
 	 * @param baseFilter - The filter being applied.
 	 * @param config - The configuration for the mask.
 	 */
-    constructor(public baseFilter: Filter, public config = new MaskConfig())
+    constructor(public baseFilter: Filter, public config: MaskConfig = new MaskConfig())
     {
         super(config);
         this.padding = baseFilter.padding;
