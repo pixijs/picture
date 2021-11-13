@@ -117,7 +117,7 @@ else
 }
 `;
 
-export const MULTIPLY_PART: string =
+export const MULTIPLY_PART =
     `vec3 B = Cs * Cb;
 `;
 export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
@@ -125,6 +125,16 @@ export const HARDLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HARDLIGHT_PART);
 export const SOFTLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, SOFTLIGHT_PART);
 export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, MULTIPLY_PART);
 
+/**
+ * Maps {@link PIXI.BLEND_MODES blend modes} to {@link IBlendShaderParts.blendCode blend code}.
+ *
+ * This library provides blending code for {@link BLEND_MODES.MULTIPLY}, {@link BLEND_MODES.OVERLAY},
+ * {@link BLEND_MODES.HARD_LIGHT}, {@link BLEND_MODES.SOFT_LIGHT}. If you add blend modes to the
+ * {@link PIXI.BLEND_MODES} enumeration, you can implement them by augmenting this map with your shader
+ * code.
+ *
+ * @type {object<string, string>}
+ */
 export const blendFullArray: Array<string> = [];
 
 blendFullArray[BLEND_MODES.MULTIPLY] = MULTIPLY_FULL;
@@ -132,9 +142,18 @@ blendFullArray[BLEND_MODES.OVERLAY] = OVERLAY_FULL;
 blendFullArray[BLEND_MODES.HARD_LIGHT] = HARDLIGHT_FULL;
 blendFullArray[BLEND_MODES.SOFT_LIGHT] = SOFTLIGHT_FULL;
 
-let filterCache: Array<BlendFilter> = [];
-let filterCacheArray: Array<Array<BlendFilter>> = [];
+const filterCache: Array<BlendFilter> = [];
+const filterCacheArray: Array<Array<BlendFilter>> = [];
 
+/**
+ * Get a memoized {@link BlendFilter} for the passed blend mode. This expects {@link blendFullArray}
+ * to have the blending code beforehand.
+ *
+ * If you changed the blending code in {@link blendFullArray}, this won't create a new blend filter
+ * due to memoization!
+ *
+ * @param blendMode - The blend mode desired.
+ */
 export function getBlendFilter(blendMode: BLEND_MODES) {
     if (!blendFullArray[blendMode]) {
         return null;
@@ -145,6 +164,24 @@ export function getBlendFilter(blendMode: BLEND_MODES) {
     return filterCache[blendMode];
 }
 
+/**
+ * Similar to {@link getBlendFilter}, but wraps the filter in a memoized array.
+ *
+ * This is useful when assigning {@link PIXI.Container.filters} as a new array will not be created
+ * per re-assigment.
+ *
+ * ```
+ * import { getBlendFilter, getBlendFilterArray } from '@pixi/picture';
+ *
+ * // Don't do
+ * displayObject.filters = [getBlendFilter(BLEND_MODES.OVERLAY)];
+ *
+ * // Do
+ * displayObject.filters = getBlendFilterArray(BLEND_MODES.OVERLAY);
+ * ```
+ *
+ * @param blendMode - The blend mode desired.
+ */
 export function getBlendFilterArray(blendMode: BLEND_MODES) {
     if (!blendFullArray[blendMode]) {
         return null;
