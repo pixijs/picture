@@ -18,10 +18,11 @@ b_res.rgb = (1.0 - b_dest.a) * Cs + b_dest.a * B;
 b_res.rgb *= b_res.a;
 `;
 
+//reverse hardlight
 export const OVERLAY_PART: string =
     `vec3 multiply = Cb * Cs * 2.0;
-vec3 Cs2 = Cs * 2.0 - 1.0;
-vec3 screen = Cb + Cs2 - Cb * Cs2;
+vec3 Cb2 = Cb * 2.0 - 1.0;
+vec3 screen = Cb2 + Cs - Cb2 * Cs;
 vec3 B;
 if (Cb.r <= 0.5) {
   B.r = multiply.r;
@@ -40,11 +41,10 @@ if (Cb.b <= 0.5) {
 }
 `;
 
-//reverse hardlight
 export const HARDLIGHT_PART: string =
     `vec3 multiply = Cb * Cs * 2.0;
-vec3 Cb2 = Cb * 2.0 - 1.0;
-vec3 screen = Cb2 + Cs - Cb2 * Cs;
+vec3 Cs2 = Cs * 2.0 - 1.0;
+vec3 screen = Cb + Cs2 - Cb * Cs2;
 vec3 B;
 if (Cs.r <= 0.5) {
   B.r = multiply.r;
