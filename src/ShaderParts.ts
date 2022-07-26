@@ -13,9 +13,11 @@ if (b_dest.a == 0.0) {
 vec3 Cb = b_dest.rgb / b_dest.a;
 vec3 Cs = b_src.rgb / b_src.a;
 %NPM_BLEND%
+// SWAP SRC WITH NPM BLEND
+vec3 new_src = (1.0 - b_dest.a) * Cs + b_dest.a * B;
+// PORTER DUFF PMA COMPOSITION MODE
 b_res.a = b_src.a + b_dest.a * (1.0-b_src.a);
-b_res.rgb = (1.0 - b_dest.a) * Cs + b_dest.a * B;
-b_res.rgb *= b_res.a;
+b_res.rgb = b_src.a * new_src + (1.0 - b_src.a) * b_dest.rgb;
 `;
 
 //reverse hardlight
@@ -117,7 +119,7 @@ else
 }
 `;
 
-export const MULTIPLY_PART =
+export const MULTIPLY_PART: string =
     `vec3 B = Cs * Cb;
 `;
 export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
