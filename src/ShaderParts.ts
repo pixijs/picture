@@ -1,8 +1,8 @@
-import {BlendFilter} from "./BlendFilter";
-import {BLEND_MODES} from "@pixi/constants";
+import { BlendFilter } from './BlendFilter';
+import { BLEND_MODES } from '@pixi/core';
 
-export const NPM_BLEND: string =
-    `if (b_src.a == 0.0) {
+export const NPM_BLEND
+    = `if (b_src.a == 0.0) {
   gl_FragColor = vec4(0, 0, 0, 0);
   return;
 }
@@ -20,9 +20,9 @@ b_res.a = b_src.a + b_dest.a * (1.0-b_src.a);
 b_res.rgb = b_src.a * new_src + (1.0 - b_src.a) * b_dest.rgb;
 `;
 
-//reverse hardlight
-export const OVERLAY_PART: string =
-    `vec3 multiply = Cb * Cs * 2.0;
+// reverse hardlight
+export const OVERLAY_PART
+    = `vec3 multiply = Cb * Cs * 2.0;
 vec3 Cb2 = Cb * 2.0 - 1.0;
 vec3 screen = Cb2 + Cs - Cb2 * Cs;
 vec3 B;
@@ -43,8 +43,8 @@ if (Cb.b <= 0.5) {
 }
 `;
 
-export const HARDLIGHT_PART: string =
-    `vec3 multiply = Cb * Cs * 2.0;
+export const HARDLIGHT_PART
+    = `vec3 multiply = Cb * Cs * 2.0;
 vec3 Cs2 = Cs * 2.0 - 1.0;
 vec3 screen = Cb + Cs2 - Cb * Cs2;
 vec3 B;
@@ -65,8 +65,8 @@ if (Cs.b <= 0.5) {
 }
 `;
 
-export const SOFTLIGHT_PART: string =
-    `vec3 first = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);
+export const SOFTLIGHT_PART
+    = `vec3 first = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);
 vec3 B;
 vec3 D;
 if (Cs.r <= 0.5)
@@ -119,8 +119,8 @@ else
 }
 `;
 
-export const MULTIPLY_PART: string =
-    `vec3 B = Cs * Cb;
+export const MULTIPLY_PART
+    = `vec3 B = Cs * Cb;
 `;
 export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
 export const HARDLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HARDLIGHT_PART);
@@ -156,13 +156,17 @@ const filterCacheArray: Array<Array<BlendFilter>> = [];
  *
  * @param blendMode - The blend mode desired.
  */
-export function getBlendFilter(blendMode: BLEND_MODES) {
-    if (!blendFullArray[blendMode]) {
+export function getBlendFilter(blendMode: BLEND_MODES)
+{
+    if (!blendFullArray[blendMode])
+    {
         return null;
     }
-    if (!filterCache[blendMode]) {
-        filterCache[blendMode] = new BlendFilter({blendCode: blendFullArray[blendMode]});
+    if (!filterCache[blendMode])
+    {
+        filterCache[blendMode] = new BlendFilter({ blendCode: blendFullArray[blendMode] });
     }
+
     return filterCache[blendMode];
 }
 
@@ -184,12 +188,16 @@ export function getBlendFilter(blendMode: BLEND_MODES) {
  *
  * @param blendMode - The blend mode desired.
  */
-export function getBlendFilterArray(blendMode: BLEND_MODES) {
-    if (!blendFullArray[blendMode]) {
+export function getBlendFilterArray(blendMode: BLEND_MODES)
+{
+    if (!blendFullArray[blendMode])
+    {
         return null;
     }
-    if (!filterCacheArray[blendMode]) {
+    if (!filterCacheArray[blendMode])
+    {
         filterCacheArray[blendMode] = [getBlendFilter(blendMode)];
     }
+
     return filterCacheArray[blendMode];
 }

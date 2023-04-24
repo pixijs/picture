@@ -1,10 +1,10 @@
-import {Sprite as SpriteBase} from '@pixi/sprite';
-import {Renderer} from "@pixi/core";
-import {getBlendFilterArray} from "./ShaderParts";
-import {IPictureFilterSystem} from "./FilterSystemMixin";
-import {BLEND_MODES} from "@pixi/constants";
+import { Sprite as SpriteBase } from '@pixi/sprite';
+import { Renderer, BLEND_MODES } from '@pixi/core';
+import { getBlendFilterArray } from './ShaderParts';
+import { IPictureFilterSystem } from './FilterSystemMixin';
 
-export class Sprite extends SpriteBase {
+export class Sprite extends SpriteBase
+{
     _render(renderer: Renderer): void
     {
         const texture = (this as any)._texture;
@@ -14,13 +14,14 @@ export class Sprite extends SpriteBase {
             return;
         }
 
-
         const blendFilterArray = getBlendFilterArray(this.blendMode);
         const cacheBlend = this.blendMode;
 
-        if (blendFilterArray) {
+        if (blendFilterArray)
+        {
             renderer.batch.flush();
-            if (!(renderer.filter as IPictureFilterSystem).pushWithCheck(this, blendFilterArray)) {
+            if (!(renderer.filter as IPictureFilterSystem).pushWithCheck(this, blendFilterArray))
+            {
                 return;
             }
             this.blendMode = BLEND_MODES.NORMAL;
@@ -30,7 +31,8 @@ export class Sprite extends SpriteBase {
         renderer.batch.setObjectRenderer(renderer.plugins[this.pluginName]);
         renderer.plugins[this.pluginName].render(this);
 
-        if (blendFilterArray) {
+        if (blendFilterArray)
+        {
             renderer.batch.flush();
             renderer.filter.pop();
             this.blendMode = cacheBlend;

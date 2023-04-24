@@ -1,5 +1,5 @@
-import {Filter} from '@pixi/core';
-import type {Dict} from '@pixi/utils';
+import { Filter } from '@pixi/core';
+import type { Dict } from '@pixi/utils';
 
 const vert = `
 attribute vec2 aVertexPosition;
@@ -33,12 +33,16 @@ void main(void)
 
 `;
 
-export class FlipYFilter extends Filter {
-	constructor(frag?: string, uniforms?: Dict<any>) {
-		const uni = uniforms || {};
-		if (!uni.flipY) {
-			uni.flipY = new Float32Array([0.0, 1.0]);
-		}
-		super(vert, frag, uni);
-	}
+export class FlipYFilter extends Filter
+{
+    constructor(frag?: string, uniforms?: Dict<any>)
+    {
+        const uni = uniforms || {};
+
+        if (!uni.flipY)
+        {
+            uni.flipY = new Float32Array([0.0, 1.0]);
+        }
+        super(vert, frag, uni);
+    }
 }

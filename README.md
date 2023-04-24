@@ -1,6 +1,6 @@
 # @pixi/picture - PixiJS Picture Kit
 
-Compatible with PixiJS `6.0.4` and up. No guarantee for earlier versions!
+Compatible with PixiJS `7.2.0` and up. No guarantee for earlier versions!
 
 ### Usage
 ```js
@@ -61,11 +61,11 @@ You have to use `backdropSampler_flipY` uniform in your blend filters to transfo
 If specified `useContextAlpha: false` in renderer creation parameters, main framebuffer is RGB and not RGBA, its not possible to `copyTex` it, you will see corresponding warning message in the console.
 
 When using `MaskFilter` with `maskBefore=true`, input is automatically flipped by Y. This operation is not needed if your base filter does not care about flipping Y, for example `BlurFilter` or `ColorMatrixFilter`.
-In this case, you can specify `maskFilter.safeFlipY=true`, that will turn off extra flipping. 
+In this case, you can specify `maskFilter.safeFlipY=true`, that will turn off extra flipping.
 
 ## Vanilla JS, UMD build
 
-All pixiJS v6 plugins has special `umd` build suited for vanilla.   
+All pixiJS v6 plugins has special `umd` build suited for vanilla.
 Navigate `pixi-picture` npm package, take `dist/pixi-picture.umd.js` file.
 
 ```html
@@ -80,6 +80,7 @@ let sprite = new PIXI.picture.Sprite();
 ## Previous versions
 
 For PixiJS `v5` and prior see README `pixi-v5` branch, or just use npm package `pixi-picture`
+For PixiJS `v6` see `pixi-v6` branch , npm version `3.0.6`
 
 ## How to build
 

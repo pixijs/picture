@@ -1,36 +1,41 @@
-import {TextureSystem, FilterSystem, BaseTexture, RenderTexture, Filter, FilterState} from '@pixi/core';
-import {CLEAR_MODES} from '@pixi/constants';
-import {Matrix, Rectangle} from '@pixi/math';
-import {DisplayObject} from '@pixi/display';
-import {BackdropFilter} from "./BlendFilter";
+import { TextureSystem, FilterSystem, BaseTexture, RenderTexture, Filter, FilterState, CLEAR_MODES } from '@pixi/core';
+import { Matrix, Rectangle } from '@pixi/math';
+import { DisplayObject } from '@pixi/display';
+import { BackdropFilter } from './BlendFilter';
 
-export interface IPictureFilterSystem extends FilterSystem {
+export interface IPictureFilterSystem extends FilterSystem
+{
     prepareBackdrop(sourceFrame: Rectangle, flipY: Float32Array): RenderTexture;
 
     pushWithCheck(target: DisplayObject, filters: Array<Filter>, checkEmptyBounds?: boolean): boolean;
 }
 
-export interface IPictureTextureSystem extends TextureSystem {
+export interface IPictureTextureSystem extends TextureSystem
+{
     bindForceLocation(texture: BaseTexture, location: number): void;
 }
 
-function containsRect(rectOut: Rectangle, rectIn: Rectangle): boolean {
-    let r1 = rectIn.x + rectIn.width;
-    let b1 = rectIn.y + rectIn.height;
-    let r2 = rectOut.x + rectOut.width;
-    let b2 = rectOut.y + rectOut.height;
-    return (rectIn.x >= rectOut.x) &&
-        (rectIn.x <= r2) &&
-        (rectIn.y >= rectOut.y) &&
-        (rectIn.y <= b2) &&
-        (r1 >= rectOut.x) &&
-        (r1 <= r2) &&
-        (b1 >= rectOut.y) &&
-        (b1 <= b2);
+function containsRect(rectOut: Rectangle, rectIn: Rectangle): boolean
+{
+    const r1 = rectIn.x + rectIn.width;
+    const b1 = rectIn.y + rectIn.height;
+    const r2 = rectOut.x + rectOut.width;
+    const b2 = rectOut.y + rectOut.height;
+
+    return (rectIn.x >= rectOut.x)
+        && (rectIn.x <= r2)
+        && (rectIn.y >= rectOut.y)
+        && (rectIn.y <= b2)
+        && (r1 >= rectOut.x)
+        && (r1 <= r2)
+        && (b1 >= rectOut.y)
+        && (b1 <= b2);
 }
 
-function bindForceLocation(this: IPictureTextureSystem, texture: BaseTexture, location = 0) {
+function bindForceLocation(this: IPictureTextureSystem, texture: BaseTexture, location = 0)
+{
     const { gl } = this;
+
     if (this.currentLocation !== location)
     {
         this.currentLocation = location;
@@ -42,7 +47,8 @@ function bindForceLocation(this: IPictureTextureSystem, texture: BaseTexture, lo
 const tempMatrix = new Matrix();
 
 function pushWithCheck(this: IPictureFilterSystem,
-              target: DisplayObject, filters: Array<BackdropFilter>, checkEmptyBounds: boolean = true) {
+    target: DisplayObject, filters: Array<BackdropFilter>, checkEmptyBounds = true)
+{
     const renderer = this.renderer;
     const filterStack = this.defaultFilterStack;
     const state = this.statePool.pop() || new FilterState();
@@ -83,6 +89,7 @@ function pushWithCheck(this: IPictureFilterSystem,
     state.sourceFrame.pad(padding);
 
     let canUseBackdrop = true;
+
     if (autoFit)
     {
         const sourceFrameProjected = (this as any).tempRect.copyFrom(renderTextureSystem.sourceFrame);
@@ -97,15 +104,19 @@ function pushWithCheck(this: IPictureFilterSystem,
         }
 
         state.sourceFrame.fit(sourceFrameProjected);
-    } else {
-        //check if backdrop is obtainable after rejecting autoFit
+    }
+    else
+    {
+        // check if backdrop is obtainable after rejecting autoFit
         canUseBackdrop = containsRect(this.renderer.renderTexture.sourceFrame, state.sourceFrame);
     }
 
-    if (checkEmptyBounds && state.sourceFrame.width <= 1 && state.sourceFrame.height <= 1) {
+    if (checkEmptyBounds && state.sourceFrame.width <= 1 && state.sourceFrame.height <= 1)
+    {
         filterStack.pop();
         state.clear();
         this.statePool.push(state);
+
         return false;
     }
     (this as any).roundFrame(
@@ -120,27 +131,39 @@ function pushWithCheck(this: IPictureFilterSystem,
     state.sourceFrame.ceil(resolution);
 
     // detect backdrop uniform
-    if (canUseBackdrop) {
+    if (canUseBackdrop)
+    {
         let backdrop = null;
         let backdropFlip = null;
-        for (let i = 0; i < filters.length; i++) {
+
+        for (let i = 0; i < filters.length; i++)
+        {
             const bName = filters[i].backdropUniformName;
-            if (bName) {
+
+            if (bName)
+            {
                 const { uniforms } = filters[i];
-                if (!uniforms[bName + '_flipY']) {
-                    uniforms[bName + '_flipY'] = new Float32Array([0.0, 1.0]);
+
+                if (!uniforms[`${bName}_flipY`])
+                {
+                    uniforms[`${bName}_flipY`] = new Float32Array([0.0, 1.0]);
                 }
-                const flip = uniforms[bName + '_flipY'];
-                if (backdrop === null) {
+                const flip = uniforms[`${bName}_flipY`];
+
+                if (backdrop === null)
+                {
                     backdrop = this.prepareBackdrop(state.sourceFrame, flip);
                     backdropFlip = flip;
-                } else {
+                }
+                else
+                {
                     flip[0] = backdropFlip[0];
                     flip[1] = backdropFlip[1];
                 }
 
                 uniforms[bName] = backdrop;
-                if (backdrop) {
+                if (backdrop)
+                {
                     filters[i]._backdropActive = true;
                 }
             }
@@ -175,10 +198,13 @@ function pushWithCheck(this: IPictureFilterSystem,
 
     const cc = filters[filters.length - 1].clearColor as any;
 
-    if (cc) {
+    if (cc)
+    {
         // take clear color from filter, it helps for advanced DisplacementFilter
         renderer.framebuffer.clear(cc[0], cc[1], cc[2], cc[3]);
-    } else {
+    }
+    else
+    {
         renderer.framebuffer.clear(0, 0, 0, 0);
     }
 
@@ -186,11 +212,13 @@ function pushWithCheck(this: IPictureFilterSystem,
 }
 
 function push(this: IPictureFilterSystem,
-              target: DisplayObject, filters: Array<Filter>) {
+    target: DisplayObject, filters: Array<Filter>)
+{
     return this.pushWithCheck(target, filters, false);
 }
 
-function pop(this: IPictureFilterSystem) {
+function pop(this: IPictureFilterSystem)
+{
     const filterStack = this.defaultFilterStack;
     const state = filterStack.pop();
     const filters = state.filters as Array<BackdropFilter>;
@@ -281,10 +309,14 @@ function pop(this: IPictureFilterSystem) {
     // release the backdrop!
     let backdropFree = false;
 
-    for (let i = 0; i < filters.length; i++) {
-        if (filters[i]._backdropActive) {
+    for (let i = 0; i < filters.length; i++)
+    {
+        if (filters[i]._backdropActive)
+        {
             const bName = filters[i].backdropUniformName;
-            if (!backdropFree) {
+
+            if (!backdropFree)
+            {
                 this.returnFilterTexture(filters[i].uniforms[bName]);
                 backdropFree = true;
             }
@@ -303,31 +335,43 @@ let hadBackbufferError = false;
  * Takes a part of current render target corresponding to bounds
  * fits sourceFrame to current render target frame to evade problems
  */
-function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture {
+function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture
+{
     const renderer = this.renderer;
     const renderTarget = renderer.renderTexture.current;
     const fr = this.renderer.renderTexture.sourceFrame;
     const tf = renderer.projection.transform || Matrix.IDENTITY;
 
-    //TODO: take non-standart sourceFrame/destinationFrame into account, all according to ShukantPal refactoring
+    // TODO: take non-standart sourceFrame/destinationFrame into account, all according to ShukantPal refactoring
 
     let resolution = 1;
-    if (renderTarget) {
+
+    if (renderTarget)
+    {
         resolution = renderTarget.baseTexture.resolution;
         flipY[1] = 1.0;
-    } else {
-        if (!renderer.useContextAlpha) {
-            if (!hadBackbufferError) {
+    }
+    else
+    {
+        if (renderer.context.premultipliedAlpha === undefined)
+        {
+            renderer.context.premultipliedAlpha = renderer.context.gl.getContextAttributes().premultipliedAlpha;
+        }
+        if (!renderer.context.premultipliedAlpha)
+        {
+            if (!hadBackbufferError)
+            {
                 hadBackbufferError = true;
                 console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer! That wont work.');
             }
+
             return null;
         }
         resolution = renderer.resolution;
         flipY[1] = -1.0;
     }
 
-    //bounds.fit(fr);
+    // bounds.fit(fr);
 
     const x = Math.round((bounds.x - fr.x + tf.tx) * resolution);
     const dy = bounds.y - fr.y + tf.ty;
@@ -338,7 +382,8 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture 
     const gl = renderer.gl;
     const rt = this.getOptimalFilterTexture(w, h, 1);
 
-    if (flipY[1] < 0) {
+    if (flipY[1] < 0)
+    {
         flipY[0] = h / rt.height;
     }
 
@@ -346,10 +391,12 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture 
     rt.setResolution(resolution);
     renderer.texture.bindForceLocation(rt.baseTexture, 0);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
+
     return rt;
 }
 
-export function applyMixins() {
+export function applyMixins()
+{
     (TextureSystem as any).prototype.bindForceLocation = bindForceLocation;
     (FilterSystem as any).prototype.push = push;
     (FilterSystem as any).prototype.pushWithCheck = pushWithCheck as any;

@@ -1,4 +1,4 @@
-import {Filter} from '@pixi/core';
+import { Filter } from '@pixi/core';
 
 /**
  * This filter uses a backdrop texture to calculate the output colors.
@@ -7,7 +7,8 @@ import {Filter} from '@pixi/core';
  * output colors. It does not need to rely on in-built {@link PIXI.BLEND_MODES blend modes} to
  * do those calculations.
  */
-export class BackdropFilter extends Filter {
+export class BackdropFilter extends Filter
+{
     /**
      * The name of the {@link Filter.uniforms uniform} for the backdrop texture.
      *
@@ -24,7 +25,8 @@ export class BackdropFilter extends Filter {
 }
 
 /** A shader part for blending source and destination colors. */
-export interface IBlendShaderParts {
+export interface IBlendShaderParts
+{
     /**
      * (optional) Code that declares any additional uniforms to be accepted by the {@link BlendFilter}.
      *
@@ -81,12 +83,15 @@ void main(void)
  *
  * The backdrop texture uniform for blend filters is {@code "uBackdrop"}.
  */
-export class BlendFilter extends BackdropFilter {
+export class BlendFilter extends BackdropFilter
+{
     /** @param shaderParts - The blending code shader part. */
-    constructor(shaderParts: IBlendShaderParts) {
+    constructor(shaderParts: IBlendShaderParts)
+    {
         let fragCode = filterFrag;
-        fragCode = fragCode.replace('%UNIFORM_CODE%', shaderParts.uniformCode || "");
-        fragCode = fragCode.replace('%BLEND_CODE%', shaderParts.blendCode || "");
+
+        fragCode = fragCode.replace('%UNIFORM_CODE%', shaderParts.uniformCode || '');
+        fragCode = fragCode.replace('%BLEND_CODE%', shaderParts.blendCode || '');
 
         super(undefined, fragCode, shaderParts.uniforms);
 
