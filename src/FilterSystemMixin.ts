@@ -353,16 +353,13 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture
     }
     else
     {
-        if (renderer.context.premultipliedAlpha === undefined)
-        {
-            renderer.context.premultipliedAlpha = renderer.context.gl.getContextAttributes().premultipliedAlpha;
-        }
-        if (!renderer.context.premultipliedAlpha)
+        if (this.renderer.background.alpha >= 1)
         {
             if (!hadBackbufferError)
             {
                 hadBackbufferError = true;
-                console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer! That wont work.');
+                console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer!');
+                console.warn('pixi-picture: please set backgroundAlpha=0 in renderer creation params');
             }
 
             return null;
