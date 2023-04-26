@@ -1,4 +1,4 @@
-import { FilterSystem, RenderTexture, Filter, BLEND_MODES, CLEAR_MODES } from '@pixi/core';
+import { systems, RenderTexture, Filter, BLEND_MODES, CLEAR_MODES } from 'pixi.js';
 import { BlendFilter } from './BlendFilter';
 import { FlipYFilter } from './FlipYFilter';
 
@@ -88,7 +88,7 @@ export class MaskFilter extends BlendFilter
      */
     safeFlipY: boolean;
 
-    apply(filterManager: FilterSystem, input: RenderTexture, output: RenderTexture,
+    apply(filterManager: systems.FilterSystem, input: RenderTexture, output: RenderTexture,
         clearMode: CLEAR_MODES): void
     {
         const target = filterManager.getFilterTexture(input);

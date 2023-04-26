@@ -1,7 +1,7 @@
 {
-  "name": "@pixi/picture",
-  "version": "4.0.0",
-  "description": "PixiJS v7 advanced filter renderer, implements advanced blending modes",
+  "name": "pixi-picture",
+  "version": "2.0.4",
+  "description": "PixiJS v7 backport to v5, advanced filter renderer, implements advanced blending modes",
   "author": "Ivan Popelyshev",
   "contributors": [
     "Ivan Popelyshev <ivan.popelyshev@gmail.com>"
@@ -23,7 +23,10 @@
     "docsCopyright": "Copyright &copy; 2015 - 2023 Ivan Popelyshev",
     "docsTitle": "PixiJS Picture blend API Documentation",
     "docsDescription": "Documentation for PixiJS Picture library",
-    "docsKeyword": "docs, documentation, pixi, pixijs, rendering, pixi-picture, shader, javascript, jsdoc"
+    "docsKeyword": "docs, documentation, pixi, pixijs, rendering, pixi-picture, shader, javascript, jsdoc",
+    "globals": {
+      "pixi.js": "PIXI"
+    }
   },
   "publishConfig": {
     "access": "public"
@@ -54,18 +57,10 @@
     "global.d.ts"
   ],
   "peerDependencies": {
-    "@pixi/constants": "^7.2.0",
-    "@pixi/core": "^7.2.0",
-    "@pixi/display": "^7.2.0",
-    "@pixi/sprite": "^7.2.0",
-    "@pixi/sprite-tiling": "^7.2.0",
-    "@pixi/math": "^7.2.0",
-    "@pixi/utils": "^7.2.0"
+    "pixi.js": "~5.3.9"
   },
   "devDependencies": {
-    "@pixi/core": "^7.2.0",
-    "@pixi/display": "^7.2.0",
-    "@pixi/extension-scripts": "^1.8.1",
-    "@pixi/graphics": "^7.2.0"
+    "pixi.js": "~5.3.9",
+    "@pixi/extension-scripts": "^1.8.1"
   }
 }

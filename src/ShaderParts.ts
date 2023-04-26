@@ -1,5 +1,5 @@
 import { BlendFilter } from './BlendFilter';
-import { BLEND_MODES } from '@pixi/core';
+import { BLEND_MODES } from 'pixi.js';
 
 export const NPM_BLEND
     = `if (b_src.a == 0.0) {

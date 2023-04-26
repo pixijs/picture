@@ -1,16 +1,16 @@
-import { TextureSystem, FilterSystem, BaseTexture, RenderTexture, Filter, FilterState, CLEAR_MODES } from '@pixi/core';
-import { Matrix, Rectangle } from '@pixi/math';
-import { DisplayObject } from '@pixi/display';
+import { systems, BaseTexture, RenderTexture, Filter, CLEAR_MODES,
+    Matrix, Rectangle, DisplayObject } from 'pixi.js';
 import { BackdropFilter } from './BlendFilter';
+import { FilterState } from './FilterState';
 
-export interface IPictureFilterSystem extends FilterSystem
+export interface IPictureFilterSystem extends systems.FilterSystem
 {
     prepareBackdrop(sourceFrame: Rectangle, flipY: Float32Array): RenderTexture;
 
     pushWithCheck(target: DisplayObject, filters: Array<Filter>, checkEmptyBounds?: boolean): boolean;
 }
 
-export interface IPictureTextureSystem extends TextureSystem
+export interface IPictureTextureSystem extends systems.TextureSystem
 {
     bindForceLocation(texture: BaseTexture, location: number): void;
 }
@@ -34,17 +34,16 @@ function containsRect(rectOut: Rectangle, rectIn: Rectangle): boolean
 
 function bindForceLocation(this: IPictureTextureSystem, texture: BaseTexture, location = 0)
 {
-    const { gl } = this;
+    const thisAny = this as any;
+    const { gl } = thisAny;
 
     if (this.currentLocation !== location)
     {
-        this.currentLocation = location;
+        thisAny.currentLocation = location;
         gl.activeTexture(gl.TEXTURE0 + location);
     }
     this.bind(texture, location);
 }
-
-const tempMatrix = new Matrix();
 
 function pushWithCheck(this: IPictureFilterSystem,
     target: DisplayObject, filters: Array<BackdropFilter>, checkEmptyBounds = true)
@@ -52,7 +51,6 @@ function pushWithCheck(this: IPictureFilterSystem,
     const renderer = this.renderer;
     const filterStack = this.defaultFilterStack;
     const state = this.statePool.pop() || new FilterState();
-    const renderTextureSystem = this.renderer.renderTexture;
 
     let resolution = filters[0].resolution;
     let padding = filters[0].padding;
@@ -61,12 +59,17 @@ function pushWithCheck(this: IPictureFilterSystem,
 
     for (let i = 1; i < filters.length; i++)
     {
-        const filter = filters[i];
+        const filter =  filters[i];
 
+        // lets use the lowest resolution..
         resolution = Math.min(resolution, filter.resolution);
+        // figure out the padding required for filters
         padding = this.useMaxPadding
+            // old behavior: use largest amount of padding!
             ? Math.max(padding, filter.padding)
+            // new behavior: sum the padding
             : padding + filter.padding;
+        // only auto fit if all filters are autofit
         autoFit = autoFit && filter.autoFit;
 
         legacy = legacy || filter.legacy;
@@ -74,7 +77,7 @@ function pushWithCheck(this: IPictureFilterSystem,
 
     if (filterStack.length === 1)
     {
-        this.defaultFilterStack[0].renderTexture = renderTextureSystem.current;
+        this.defaultFilterStack[0].renderTexture = renderer.renderTexture.current;
     }
 
     filterStack.push(state);
@@ -84,33 +87,20 @@ function pushWithCheck(this: IPictureFilterSystem,
     state.legacy = legacy;
 
     state.target = target;
+
     state.sourceFrame.copyFrom(target.filterArea || target.getBounds(true));
 
     state.sourceFrame.pad(padding);
-
     let canUseBackdrop = true;
 
     if (autoFit)
     {
-        const sourceFrameProjected = (this as any).tempRect.copyFrom(renderTextureSystem.sourceFrame);
-
-        // Project source frame into world space (if projection is applied)
-        if (renderer.projection.transform)
-        {
-            (this as any).transformAABB(
-                tempMatrix.copyFrom(renderer.projection.transform).invert(),
-                sourceFrameProjected
-            );
-        }
-
-        state.sourceFrame.fit(sourceFrameProjected);
+        state.sourceFrame.fit(this.renderer.renderTexture.sourceFrame);
     }
     else
     {
-        // check if backdrop is obtainable after rejecting autoFit
         canUseBackdrop = containsRect(this.renderer.renderTexture.sourceFrame, state.sourceFrame);
     }
-
     if (checkEmptyBounds && state.sourceFrame.width <= 1 && state.sourceFrame.height <= 1)
     {
         filterStack.pop();
@@ -119,18 +109,10 @@ function pushWithCheck(this: IPictureFilterSystem,
 
         return false;
     }
-    (this as any).roundFrame(
-        state.sourceFrame,
-        renderTextureSystem.current ? renderTextureSystem.current.resolution : renderer.resolution,
-        renderTextureSystem.sourceFrame,
-        renderTextureSystem.destinationFrame,
-        renderer.projection.transform,
-    );
 
     // round to whole number based on resolution
     state.sourceFrame.ceil(resolution);
 
-    // detect backdrop uniform
     if (canUseBackdrop)
     {
         let backdrop = null;
@@ -181,20 +163,15 @@ function pushWithCheck(this: IPictureFilterSystem,
     state.destinationFrame.width = state.renderTexture.width;
     state.destinationFrame.height = state.renderTexture.height;
 
-    const destinationFrame = (this as any).tempRect;
+    const destinationFrame = this.tempRect;
 
-    destinationFrame.x = 0;
-    destinationFrame.y = 0;
     destinationFrame.width = state.sourceFrame.width;
     destinationFrame.height = state.sourceFrame.height;
 
     state.renderTexture.filterFrame = state.sourceFrame;
-    state.bindingSourceFrame.copyFrom(renderTextureSystem.sourceFrame);
-    state.bindingDestinationFrame.copyFrom(renderTextureSystem.destinationFrame);
 
-    state.transform = renderer.projection.transform;
-    renderer.projection.transform = null;
-    renderTextureSystem.bind(state.renderTexture, state.sourceFrame, destinationFrame);
+    renderer.renderTexture.bind(state.renderTexture, state.sourceFrame, destinationFrame);
+    renderer.renderTexture.clear();
 
     const cc = filters[filters.length - 1].clearColor as any;
 
@@ -262,7 +239,7 @@ function pop(this: IPictureFilterSystem)
         globalUniforms.filterClamp = globalUniforms.inputClamp;
     }
 
-    this.globalUniforms.update();
+    (this.globalUniforms as any).update();
 
     const lastState = filterStack[filterStack.length - 1];
 
@@ -286,7 +263,7 @@ function pop(this: IPictureFilterSystem)
             state.resolution
         );
 
-        flop.filterFrame = flip.filterFrame;
+        (flop as any).filterFrame = flip.filterFrame;
 
         let i = 0;
 
@@ -353,13 +330,13 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture
     }
     else
     {
-        if (this.renderer.background.alpha >= 1)
+        if (!this.renderer.transparent)
         {
             if (!hadBackbufferError)
             {
                 hadBackbufferError = true;
                 console.warn('pixi-picture: you are trying to use Blend Filter on main framebuffer!');
-                console.warn('pixi-picture: please set backgroundAlpha=0 in renderer creation params');
+                console.warn('pixi-picture: please set transparent=true in renderer creation params');
             }
 
             return null;
@@ -384,7 +361,7 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture
         flipY[0] = h / rt.height;
     }
 
-    rt.filterFrame = fr;
+    (rt as any).filterFrame = fr;
     rt.setResolution(resolution);
     renderer.texture.bindForceLocation(rt.baseTexture, 0);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, x, y, w, h);
@@ -394,9 +371,9 @@ function prepareBackdrop(bounds: Rectangle, flipY: Float32Array): RenderTexture
 
 export function applyMixins()
 {
-    (TextureSystem as any).prototype.bindForceLocation = bindForceLocation;
-    (FilterSystem as any).prototype.push = push;
-    (FilterSystem as any).prototype.pushWithCheck = pushWithCheck as any;
-    (FilterSystem as any).prototype.pop = pop;
-    (FilterSystem as any).prototype.prepareBackdrop = prepareBackdrop;
+    (systems.TextureSystem as any).prototype.bindForceLocation = bindForceLocation;
+    (systems.FilterSystem as any).prototype.push = push;
+    (systems.FilterSystem as any).prototype.pushWithCheck = pushWithCheck as any;
+    (systems.FilterSystem as any).prototype.pop = pop;
+    (systems.FilterSystem as any).prototype.prepareBackdrop = prepareBackdrop;
 }

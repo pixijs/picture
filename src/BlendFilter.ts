@@ -1,4 +1,4 @@
-import { Filter } from '@pixi/core';
+import { Filter } from 'pixi.js';
 
 /**
  * This filter uses a backdrop texture to calculate the output colors.

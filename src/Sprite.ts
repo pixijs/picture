@@ -1,7 +1,5 @@
-import { Sprite as SpriteBase } from '@pixi/sprite';
-import { Renderer, BLEND_MODES } from '@pixi/core';
+import { Sprite as SpriteBase, Renderer, BLEND_MODES } from 'pixi.js';
 import { getBlendFilterArray } from './ShaderParts';
-import { IPictureFilterSystem } from './FilterSystemMixin';
 
 export class Sprite extends SpriteBase
 {
@@ -20,7 +18,7 @@ export class Sprite extends SpriteBase
         if (blendFilterArray)
         {
             renderer.batch.flush();
-            if (!(renderer.filter as IPictureFilterSystem).pushWithCheck(this, blendFilterArray))
+            if (!(renderer.filter as any).pushWithCheck(this, blendFilterArray))
             {
                 return;
             }

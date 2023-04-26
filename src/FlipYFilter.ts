@@ -1,5 +1,6 @@
-import { Filter } from '@pixi/core';
-import type { Dict } from '@pixi/utils';
+import { Filter } from 'pixi.js';
+
+type Dict<T> = {[key:string]: T};
 
 const vert = `
 attribute vec2 aVertexPosition;

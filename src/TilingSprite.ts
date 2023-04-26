@@ -1,5 +1,4 @@
-import { TilingSprite as TilingSpriteBase } from '@pixi/sprite-tiling';
-import { Renderer } from '@pixi/core';
+import { TilingSprite as TilingSpriteBase, Renderer } from 'pixi.js';
 import { getBlendFilterArray } from './ShaderParts';
 import { IPictureFilterSystem } from './FilterSystemMixin';
 
