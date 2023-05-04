@@ -1,5 +1,7 @@
-import { systems, BaseTexture, RenderTexture, Filter, CLEAR_MODES,
-    Matrix, Rectangle, DisplayObject } from 'pixi.js';
+import {
+    systems, BaseTexture, RenderTexture, Filter, CLEAR_MODES,
+    Matrix, Rectangle, DisplayObject, State
+} from 'pixi.js';
 import { BackdropFilter } from './BlendFilter';
 import { FilterState } from './FilterState';
 
@@ -248,7 +250,17 @@ function pop(this: IPictureFilterSystem)
         this.renderer.framebuffer.blit();
     }
 
-    if (filters.length === 1)
+    let filterLen = filters.length;
+    let tmpState: State = null;
+
+    if (filterLen >= 2 && filters[filterLen - 1].trivial)
+    {
+        tmpState = filters[filterLen - 2].state;
+        filters[filterLen - 2].state = filters[filterLen - 1].state;
+        filterLen--;
+    }
+
+    if (filterLen === 1)
     {
         filters[0].apply(this, state.renderTexture, lastState.renderTexture, CLEAR_MODES.BLEND, state);
 
@@ -267,7 +279,7 @@ function pop(this: IPictureFilterSystem)
 
         let i = 0;
 
-        for (i = 0; i < filters.length - 1; ++i)
+        for (i = 0; i < filterLen - 1; ++i)
         {
             filters[i].apply(this, flip, flop, CLEAR_MODES.CLEAR, state);
 
@@ -281,6 +293,10 @@ function pop(this: IPictureFilterSystem)
 
         this.returnFilterTexture(flip);
         this.returnFilterTexture(flop);
+    }
+    if (tmpState)
+    {
+        filters[filterLen - 1].state = tmpState;
     }
 
     // release the backdrop!
