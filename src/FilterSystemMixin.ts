@@ -309,7 +309,7 @@ function pop(this: IPictureFilterSystem)
 
         let i = 0;
 
-        for (i = 0; i < filters.length - 1; ++i)
+        for (i = 0; i < filterLen - 1; ++i)
         {
             filters[i].apply(this, flip, flop, CLEAR_MODES.CLEAR, state);
 
