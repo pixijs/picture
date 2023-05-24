@@ -17,6 +17,7 @@ export class BackdropFilter extends Filter
      */
     backdropUniformName: string = null;
 
+    trivial = false;
     /** @ignore */
     _backdropActive = false;
 
